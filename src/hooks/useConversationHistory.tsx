@@ -143,13 +143,22 @@ export const useConversationHistory = () => {
         return;
       }
 
-      // Update message count
-      const { error: updateError } = await supabase.rpc('increment_message_count', {
-        session_id: sessionId
-      });
+      // Update message count manually since we don't have the RPC function yet
+      const { data: currentSession } = await supabase
+        .from('conversation_sessions')
+        .select('total_messages')
+        .eq('id', sessionId)
+        .single();
 
-      if (updateError) {
-        console.error('Error updating message count:', updateError);
+      if (currentSession) {
+        const { error: updateError } = await supabase
+          .from('conversation_sessions')
+          .update({ total_messages: currentSession.total_messages + 1 })
+          .eq('id', sessionId);
+
+        if (updateError) {
+          console.error('Error updating message count:', updateError);
+        }
       }
     } catch (error) {
       console.error('Error in addMessage:', error);
