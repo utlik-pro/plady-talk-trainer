@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
@@ -65,14 +66,14 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
   const [showVoiceSetup, setShowVoiceSetup] = useState(false);
 
   useEffect(() => {
-    // Initialize first message
-    if (chatHistory.length === 0) {
+    // Initialize first message only in text mode
+    if (chatHistory.length === 0 && !isVoiceMode) {
       setChatHistory([{
         text: scenarios[currentScenario].characterMessage,
         sender: 'character'
       }]);
     }
-  }, [currentScenario, chatHistory.length]);
+  }, [currentScenario, chatHistory.length, isVoiceMode]);
 
   useEffect(() => {
     // Timer for tracking training time
@@ -92,16 +93,6 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
 
     return () => clearInterval(timer);
   }, [user, incrementTrainingTime, onPaywallReached]);
-
-  // Speak character message when it's added
-  useEffect(() => {
-    if (isVoiceMode && voiceChat.isConfigured && chatHistory.length > 0) {
-      const lastMessage = chatHistory[chatHistory.length - 1];
-      if (lastMessage.sender === 'character') {
-        voiceChat.speak(lastMessage.text);
-      }
-    }
-  }, [chatHistory, isVoiceMode, voiceChat]);
 
   const handleReplySelect = (reply: Reply) => {
     // Add user message
@@ -149,12 +140,18 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
       setShowVoiceSetup(true);
       return;
     }
+    
+    // If currently listening, stop the conversation first
+    if (voiceChat.isListening) {
+      voiceChat.stopListening();
+    }
+    
     setIsVoiceMode(!isVoiceMode);
     
-    // If switching to voice mode, clear chat history as we'll use live conversation
-    if (!isVoiceMode) {
-      setChatHistory([]);
-    }
+    // Clear chat history when switching modes
+    setChatHistory([]);
+    
+    console.log('Switched to', !isVoiceMode ? 'voice' : 'text', 'mode');
   };
 
   const formatTime = (seconds: number) => {

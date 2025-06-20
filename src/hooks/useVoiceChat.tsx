@@ -29,6 +29,7 @@ export const useVoiceChat = () => {
   const configure = useCallback((config: VoiceChatConfig) => {
     setApiKey(config.apiKey);
     setIsConfigured(!!config.apiKey);
+    console.log('Voice chat configured with API key');
   }, []);
 
   const startListening = useCallback(async () => {
@@ -38,9 +39,12 @@ export const useVoiceChat = () => {
     }
 
     try {
+      console.log('Requesting microphone access...');
       // Request microphone access first
       await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('Microphone access granted');
       
+      console.log('Getting signed URL from ElevenLabs...');
       // Generate signed URL for the agent
       const response = await fetch(
         `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=agent_01jy3m8mhpe3092q9cmsvzcwe8`,
@@ -53,15 +57,20 @@ export const useVoiceChat = () => {
       );
 
       if (!response.ok) {
-        throw new Error('Failed to get signed URL');
+        const errorText = await response.text();
+        console.error('Failed to get signed URL:', response.status, errorText);
+        throw new Error(`Failed to get signed URL: ${response.status}`);
       }
 
       const { signed_url } = await response.json();
+      console.log('Got signed URL, starting session...');
       
       // Start the conversation with the correct parameter name
       await conversation.startSession({
         signedUrl: signed_url
       });
+      
+      console.log('Voice conversation started successfully');
     } catch (error) {
       console.error('Error starting conversation:', error);
     }
@@ -69,23 +78,19 @@ export const useVoiceChat = () => {
 
   const stopListening = useCallback(async () => {
     try {
+      console.log('Ending voice conversation...');
       await conversation.endSession();
+      console.log('Voice conversation ended');
     } catch (error) {
       console.error('Error ending conversation:', error);
     }
   }, [conversation]);
-
-  const speak = useCallback(async (text: string) => {
-    // This method is no longer needed as the conversation handles TTS automatically
-    console.log('Text would be spoken:', text);
-  }, []);
 
   return {
     isListening: conversation.status === 'connected',
     isSpeaking: conversation.isSpeaking,
     isConfigured,
     configure,
-    speak,
     startListening,
     stopListening
   };
