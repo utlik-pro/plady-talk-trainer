@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, Pause, RotateCcw, Volume2, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { elevenlabsService } from '@/services/elevenlabsService';
+import { useAuth } from '@/hooks/useAuth';
 import type { ConversationMessage, Character } from '@/types/conversation';
 
 interface FullAudioPlayerProps {
@@ -17,14 +19,18 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
   const [isLoading, setIsLoading] = useState(false);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(-1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { user } = useAuth();
 
-  const characterMessages = messages.filter(msg => msg.sender === 'character');
+  // Сортируем сообщения по времени для правильной последовательности
+  const sortedMessages = [...messages].sort((a, b) => 
+    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
 
   const playFullConversation = async () => {
-    if (characterMessages.length === 0) {
+    if (sortedMessages.length === 0) {
       toast({
-        title: "Нет аудио",
-        description: "В этом разговоре нет сообщений от персонажа",
+        title: "Нет сообщений",
+        description: "В этом разговоре нет сообщений для воспроизведения",
         variant: "destructive"
       });
       return;
@@ -51,7 +57,7 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
   };
 
   const playMessageSequentially = async (messageIndex: number) => {
-    if (messageIndex >= characterMessages.length) {
+    if (messageIndex >= sortedMessages.length) {
       // Все сообщения воспроизведены
       setIsPlaying(false);
       setCurrentMessageIndex(-1);
@@ -62,10 +68,13 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
       return;
     }
 
-    const message = characterMessages[messageIndex];
+    const message = sortedMessages[messageIndex];
     setCurrentMessageIndex(messageIndex);
 
     try {
+      // Определяем голос в зависимости от отправителя
+      const voice = message.sender === 'user' ? 'alloy' : 'nova';
+      
       const response = await fetch('https://api.openai.com/v1/audio/speech', {
         method: 'POST',
         headers: {
@@ -74,7 +83,7 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
         },
         body: JSON.stringify({
           model: 'tts-1',
-          voice: 'nova',
+          voice: voice,
           input: message.message_text,
           response_format: 'mp3'
         }),
@@ -96,12 +105,16 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
       
       audio.onended = () => {
         URL.revokeObjectURL(audioUrl);
+        // Отслеживаем использование ElevenLabs для сообщений персонажа
+        if (message.sender === 'character' && user) {
+          elevenlabsService.trackUsage(user.id, message.session_id, message.message_text.length);
+        }
         // Небольшая пауза между сообщениями
         setTimeout(() => {
           if (isPlaying) {
             playMessageSequentially(messageIndex + 1);
           }
-        }, 500);
+        }, 1000); // Увеличена пауза до 1 секунды для лучшего восприятия
       };
       
       audio.onerror = () => {
@@ -143,6 +156,18 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
     }, 100);
   };
 
+  const getSpeakerInfo = (message: ConversationMessage) => {
+    return message.sender === 'user' ? {
+      name: 'Вы',
+      emoji: '👤',
+      voice: 'alloy'
+    } : {
+      name: character.name,
+      emoji: character.avatar,
+      voice: 'nova'
+    };
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-md">
@@ -158,7 +183,7 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
             <div className="text-4xl mb-2">{character.avatar}</div>
             <h3 className="font-medium">{character.name}</h3>
             <p className="text-sm text-gray-600">
-              {characterMessages.length} аудио сообщений
+              {sortedMessages.length} сообщений для воспроизведения
             </p>
           </div>
 
@@ -166,20 +191,33 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
           {isPlaying && currentMessageIndex >= 0 && (
             <div className="bg-gray-100 rounded-lg p-3">
               <div className="text-sm text-gray-600 mb-1">
-                Сообщение {currentMessageIndex + 1} из {characterMessages.length}
+                Сообщение {currentMessageIndex + 1} из {sortedMessages.length}
               </div>
-              <div className="text-xs text-gray-500">
-                "{characterMessages[currentMessageIndex]?.message_text?.substring(0, 50)}..."
+              <div className="text-xs text-gray-500 mb-1">
+                {getSpeakerInfo(sortedMessages[currentMessageIndex]).name}: 
+                "{sortedMessages[currentMessageIndex]?.message_text?.substring(0, 40)}..."
+              </div>
+              <div className="text-xs text-blue-600">
+                Голос: {getSpeakerInfo(sortedMessages[currentMessageIndex]).voice}
               </div>
             </div>
           )}
+
+          {/* Info about voices */}
+          <div className="bg-blue-50 rounded-lg p-3">
+            <div className="text-sm text-blue-800 font-medium mb-1">Голоса:</div>
+            <div className="text-xs text-blue-600 space-y-1">
+              <div>👤 Ваши сообщения: голос "alloy"</div>
+              <div>{character.avatar} {character.name}: голос "nova"</div>
+            </div>
+          </div>
 
           {/* Controls */}
           <div className="flex justify-center space-x-3">
             {!isPlaying ? (
               <Button
                 onClick={playFullConversation}
-                disabled={isLoading || characterMessages.length === 0}
+                disabled={isLoading || sortedMessages.length === 0}
                 className="bg-gradient-to-r from-plady-pink to-plady-purple"
               >
                 {isLoading ? (
@@ -187,7 +225,7 @@ export const FullAudioPlayer = ({ messages, character, onClose }: FullAudioPlaye
                 ) : (
                   <Play className="w-4 h-4 mr-2" />
                 )}
-                Воспроизвести всё
+                Воспроизвести весь разговор
               </Button>
             ) : (
               <>

@@ -1,9 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Play, Pause, Loader2, MessageSquare, Volume2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { conversationService } from '@/services/conversationService';
+import { elevenlabsService } from '@/services/elevenlabsService';
+import { useAuth } from '@/hooks/useAuth';
 import { ConversationAnalysis } from './ConversationAnalysis';
 import { FullAudioPlayer } from './FullAudioPlayer';
 import type { ConversationSession, ConversationMessage, Character } from '@/types/conversation';
@@ -19,6 +22,7 @@ export const ConversationDetailScreen = ({ session, onBack }: ConversationDetail
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showFullAudioPlayer, setShowFullAudioPlayer] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchMessages();
@@ -79,6 +83,10 @@ export const ConversationDetailScreen = ({ session, onBack }: ConversationDetail
       audio.onended = () => {
         setPlayingMessageId(null);
         URL.revokeObjectURL(audioUrl);
+        // Отслеживаем использование ElevenLabs
+        if (user) {
+          elevenlabsService.trackUsage(user.id, session.id, text.length);
+        }
       };
       
       await audio.play();
@@ -148,7 +156,7 @@ export const ConversationDetailScreen = ({ session, onBack }: ConversationDetail
               className="flex items-center space-x-2"
             >
               <Volume2 className="w-4 h-4" />
-              <span>Слушать всё</span>
+              <span>Слушать весь разговор</span>
             </Button>
             <Button onClick={handleAnalyze} className="bg-gradient-to-r from-plady-pink to-plady-purple">
               <MessageSquare className="w-4 h-4 mr-2" />

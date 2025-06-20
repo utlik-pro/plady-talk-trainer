@@ -112,47 +112,6 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
           </div>
         </div>
 
-        {/* Progress Overview */}
-        {!statsLoading && stats.overallRecommendations.length > 0 && (
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
-            <h2 className="text-lg font-semibold mb-4">Общий прогресс</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium text-gray-800 mb-2">Рекомендации:</h3>
-                <ul className="space-y-1">
-                  {stats.overallRecommendations.slice(0, 3).map((recommendation, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start">
-                      <span className="text-green-500 mr-2">•</span>
-                      {recommendation}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {stats.areasToImprove.length > 0 && (
-                <div>
-                  <h3 className="font-medium text-gray-800 mb-2">Области для улучшения:</h3>
-                  <ul className="space-y-1">
-                    {stats.areasToImprove.slice(0, 3).map((area, index) => (
-                      <li key={index} className="text-sm text-gray-600 flex items-start">
-                        <span className="text-orange-500 mr-2">•</span>
-                        {area}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="pt-2 border-t border-gray-100">
-                <p className="text-sm text-gray-600">
-                  Продолжайте тренировки для достижения лучших результатов! 
-                  Рекомендуем провести еще {Math.max(0, 10 - stats.totalSessions)} сессий для закрепления навыков.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Account Info */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
           <h2 className="text-lg font-semibold mb-4">Информация об аккаунте</h2>
@@ -178,6 +137,10 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
             <div className="flex justify-between">
               <span className="text-gray-600">Всего сообщений:</span>
               <span className="font-medium">{stats.totalMessages}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Потрачено на ElevenLabs:</span>
+              <span className="font-medium">${(profile.total_spent || 0).toFixed(4)}</span>
             </div>
           </div>
         </div>
