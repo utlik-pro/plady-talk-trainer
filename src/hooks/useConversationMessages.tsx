@@ -11,6 +11,7 @@ interface ConversationMessage {
 export const useConversationMessages = () => {
   const [conversationMessages, setConversationMessages] = useState<ConversationMessage[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [elevenLabsConversationId, setElevenLabsConversationId] = useState<string | null>(null);
   const { addMessage } = useConversationHistory();
 
   const addConversationMessage = async (text: string, sender: 'user' | 'character') => {
@@ -22,44 +23,42 @@ export const useConversationMessages = () => {
     
     setConversationMessages(prev => [...prev, message]);
     
-    // Save to database if we have an active session
+    // Сохраняем в базу данных если есть активная сессия
     if (currentSessionId) {
       await addMessage(currentSessionId, sender, text);
     }
   };
 
-  useEffect(() => {
-    const handleMessage = (message: any) => {
-      if (message.type === 'user_transcript' && message.final) {
-        addConversationMessage(message.text, 'user');
-      } else if (message.type === 'agent_response') {
-        addConversationMessage(message.text, 'character');
-      }
-    };
-
-    // This would need to be properly integrated with the ElevenLabs conversation
-    // For now, we'll simulate collecting messages
-    
-    return () => {
-      // Cleanup
-    };
-  }, [currentSessionId]);
-
-  const startNewSession = (sessionId: string) => {
+  const startNewSession = (sessionId: string, elevenLabsId?: string) => {
     setCurrentSessionId(sessionId);
+    setElevenLabsConversationId(elevenLabsId || null);
     setConversationMessages([]);
+  };
+
+  const updateMessages = (messages: ConversationMessage[]) => {
+    setConversationMessages(messages);
+    
+    // Сохраняем новые сообщения в базу данных
+    if (currentSessionId) {
+      messages.forEach(async (message) => {
+        await addMessage(currentSessionId, message.sender, message.text);
+      });
+    }
   };
 
   const resetMessages = () => {
     setConversationMessages([]);
     setCurrentSessionId(null);
+    setElevenLabsConversationId(null);
   };
 
   return {
     conversationMessages,
     currentSessionId,
+    elevenLabsConversationId,
     addConversationMessage,
     startNewSession,
+    updateMessages,
     resetMessages
   };
 };

@@ -1,13 +1,14 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, RotateCcw, MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useConversationHistory } from '@/hooks/useConversationHistory';
 
 interface ConversationAnalysisProps {
   messages: Array<{text: string, sender: 'user' | 'character'}>;
   character: {name: string, avatar: string, personality: string};
+  sessionId: string | null;
   onStartNew: () => void;
 }
 
@@ -20,14 +21,15 @@ interface AnalysisResult {
   detailed_feedback: string;
 }
 
-export const ConversationAnalysis = ({ messages, character, onStartNew }: ConversationAnalysisProps) => {
+export const ConversationAnalysis = ({ messages, character, sessionId, onStartNew }: ConversationAnalysisProps) => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [apiKey, setApiKey] = useState('');
   const [showApiInput, setShowApiInput] = useState(false);
+  const { saveAnalysis } = useConversationHistory();
 
   useEffect(() => {
-    // Check if we have an API key stored
+    // Проверяем есть ли сохраненный API ключ
     const storedApiKey = localStorage.getItem('openai_api_key');
     if (storedApiKey) {
       setApiKey(storedApiKey);
@@ -72,7 +74,7 @@ ${conversationText}
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4.1-2025-04-14',
+          model: 'gpt-4-turbo-preview',
           messages: [
             {
               role: 'system',
@@ -98,6 +100,13 @@ ${conversationText}
       try {
         const parsedAnalysis = JSON.parse(analysisText);
         setAnalysis(parsedAnalysis);
+        
+        // Сохраняем анализ в базу данных
+        if (sessionId) {
+          await saveAnalysis(sessionId, parsedAnalysis);
+          console.log('Analysis saved to database for session:', sessionId);
+        }
+        
       } catch (parseError) {
         console.error('Failed to parse analysis JSON:', parseError);
         throw new Error('Не удалось распарсить ответ от ChatGPT');
@@ -163,6 +172,9 @@ ${conversationText}
         <div className="text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-plady-purple" />
           <p className="text-gray-600">Анализирую ваш разговор...</p>
+          {sessionId && (
+            <p className="text-xs text-gray-500">Session ID: {sessionId}</p>
+          )}
         </div>
       </div>
     );
@@ -175,6 +187,9 @@ ${conversationText}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Анализ разговора</h1>
           <p className="text-gray-600">с {character.name} {character.avatar}</p>
+          {sessionId && (
+            <p className="text-xs text-gray-500 mt-1">Session: {sessionId}</p>
+          )}
         </div>
 
         {analysis && (

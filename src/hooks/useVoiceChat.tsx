@@ -7,10 +7,18 @@ interface VoiceChatConfig {
   agentId?: string;
 }
 
+interface ConversationMessage {
+  text: string;
+  sender: 'user' | 'character';
+  timestamp: Date;
+}
+
 export const useVoiceChat = () => {
   const [apiKey, setApiKey] = useState<string>('sk_c6dfeb28d2cc4b3c7cac8b5324875cc07b9751bd7a3d4084');
   const [agentId, setAgentId] = useState<string>('agent_01jy6qz3rqed38msb7dhnwsv18');
-  const [isConfigured, setIsConfigured] = useState(true); // Сразу настроен
+  const [isConfigured, setIsConfigured] = useState(true);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
   
   const conversation = useConversation({
     onConnect: () => {
@@ -21,6 +29,23 @@ export const useVoiceChat = () => {
     },
     onMessage: (message) => {
       console.log('Received message:', message);
+      
+      // Обрабатываем разные типы сообщений от ElevenLabs
+      if (message.type === 'user_transcript' && message.user_transcript?.final) {
+        const newMessage: ConversationMessage = {
+          text: message.user_transcript.text,
+          sender: 'user',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, newMessage]);
+      } else if (message.type === 'agent_response') {
+        const newMessage: ConversationMessage = {
+          text: message.agent_response?.text || '',
+          sender: 'character',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, newMessage]);
+      }
     },
     onError: (error) => {
       console.error('Conversation error:', error);
@@ -39,7 +64,7 @@ export const useVoiceChat = () => {
   const startListening = useCallback(async () => {
     if (!apiKey) {
       console.error('ElevenLabs API key not configured');
-      return;
+      return null;
     }
 
     try {
@@ -67,13 +92,20 @@ export const useVoiceChat = () => {
       const { signed_url } = await response.json();
       console.log('Got signed URL, starting session...');
       
-      await conversation.startSession({
+      // Очищаем предыдущие сообщения
+      setMessages([]);
+      
+      const conversationId = await conversation.startSession({
         signedUrl: signed_url
       });
       
-      console.log('Voice conversation started successfully');
+      setConversationId(conversationId);
+      console.log('Voice conversation started successfully, ID:', conversationId);
+      
+      return conversationId;
     } catch (error) {
       console.error('Error starting conversation:', error);
+      return null;
     }
   }, [apiKey, agentId, conversation]);
 
@@ -92,8 +124,11 @@ export const useVoiceChat = () => {
     isSpeaking: conversation.isSpeaking,
     isConfigured,
     agentId,
+    conversationId,
+    messages,
     configure,
     startListening,
-    stopListening
+    stopListening,
+    clearMessages: () => setMessages([])
   };
 };

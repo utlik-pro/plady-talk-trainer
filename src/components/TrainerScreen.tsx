@@ -36,17 +36,63 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
     onTimeIncrement: incrementTrainingTime
   });
 
-  const { conversationMessages, currentSessionId, startNewSession, resetMessages } = useConversationMessages();
+  const { 
+    conversationMessages, 
+    currentSessionId, 
+    elevenLabsConversationId,
+    startNewSession, 
+    updateMessages,
+    resetMessages 
+  } = useConversationMessages();
+
+  // Синхронизируем сообщения с ElevenLabs
+  useEffect(() => {
+    if (voiceChat.messages.length > 0) {
+      updateMessages(voiceChat.messages);
+    }
+  }, [voiceChat.messages]);
 
   const handleStartConversation = async () => {
     if (!user) return;
     
-    // Create new session in database
-    const sessionId = await createSession(character);
-    if (sessionId) {
-      startNewSession(sessionId);
-      voiceChat.startListening();
-    } else {
+    try {
+      // Создаем новую сессию в базе данных
+      const sessionId = await createSession(character);
+      if (!sessionId) {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось создать сессию в базе данных",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Запускаем разговор с ElevenLabs
+      const elevenLabsConversationId = await voiceChat.startListening();
+      if (!elevenLabsConversationId) {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось подключиться к ElevenLabs",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Связываем сессии
+      startNewSession(sessionId, elevenLabsConversationId);
+      
+      console.log('Session started:', {
+        databaseSessionId: sessionId,
+        elevenLabsConversationId: elevenLabsConversationId
+      });
+
+      toast({
+        title: "Разговор начат",
+        description: `ElevenLabs ID: ${elevenLabsConversationId}`,
+      });
+
+    } catch (error) {
+      console.error('Error starting conversation:', error);
       toast({
         title: "Ошибка",
         description: "Не удалось начать разговор",
@@ -56,16 +102,34 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
   };
 
   const handleEndConversation = async () => {
-    voiceChat.stopListening();
-    
-    if (conversationMessages.length > 0 && currentSessionId) {
-      // End session in database
-      await endSession(currentSessionId, timeSpent);
-      setShowAnalysis(true);
-    } else {
+    try {
+      // Останавливаем голосовой чат
+      await voiceChat.stopListening();
+      
+      if (conversationMessages.length > 0 && currentSessionId) {
+        // Завершаем сессию в базе данных
+        await endSession(currentSessionId, timeSpent);
+        
+        console.log('Session ended:', {
+          databaseSessionId: currentSessionId,
+          elevenLabsConversationId: elevenLabsConversationId,
+          messagesCount: conversationMessages.length,
+          duration: timeSpent
+        });
+
+        setShowAnalysis(true);
+      } else {
+        toast({
+          title: "Разговор слишком короткий",
+          description: "Поговорите подольше, чтобы получить анализ",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error ending conversation:', error);
       toast({
-        title: "Разговор слишком короткий",
-        description: "Поговорите подольше, чтобы получить анализ",
+        title: "Ошибка",
+        description: "Не удалось завершить разговор",
         variant: "destructive"
       });
     }
@@ -75,19 +139,15 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
     setShowAnalysis(false);
     resetMessages();
     resetTimer();
+    voiceChat.clearMessages();
   };
-
-  // Override voice chat start listening to use our session management
-  const originalStartListening = voiceChat.startListening;
-  useEffect(() => {
-    voiceChat.startListening = handleStartConversation;
-  }, []);
 
   if (showAnalysis) {
     return (
       <ConversationAnalysis
         messages={conversationMessages}
         character={character}
+        sessionId={currentSessionId}
         onStartNew={handleStartNewConversation}
       />
     );
@@ -111,8 +171,19 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
         timeSpent={timeSpent}
         userRole={profile?.role || 'free'}
         onStartListening={handleStartConversation}
-        onStopListening={voiceChat.stopListening}
+        onStopListening={handleEndConversation}
       />
+
+      {/* Debug info */}
+      {currentSessionId && (
+        <div className="fixed bottom-20 left-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs">
+          <div>DB Session: {currentSessionId}</div>
+          {elevenLabsConversationId && (
+            <div>ElevenLabs: {elevenLabsConversationId}</div>
+          )}
+          <div>Messages: {conversationMessages.length}</div>
+        </div>
+      )}
     </div>
   );
 };
