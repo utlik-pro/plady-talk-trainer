@@ -176,19 +176,8 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
         userRole={profile?.role || 'free'}
         onStartListening={handleStartConversation}
         onStopListening={handleEndConversation}
+        onEndConversation={handleEndConversation}
       />
-
-      {/* Debug info */}
-      {currentSessionId && (
-        <div className="fixed bottom-20 left-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs max-w-xs">
-          <div>DB Session: {currentSessionId.substring(0, 8)}...</div>
-          {elevenLabsConversationId && (
-            <div>ElevenLabs: {elevenLabsConversationId.substring(0, 8)}...</div>
-          )}
-          <div>Messages: {conversationMessages.length}</div>
-          <div>Voice Messages: {voiceChat.messages.length}</div>
-        </div>
-      )}
     </div>
   );
 };

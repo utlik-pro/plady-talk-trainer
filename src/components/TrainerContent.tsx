@@ -1,5 +1,6 @@
 
 import { VoiceInterface } from './VoiceInterface';
+import { Button } from '@/components/ui/button';
 
 interface TrainerContentProps {
   character: {
@@ -14,6 +15,7 @@ interface TrainerContentProps {
   userRole: 'free' | 'premium';
   onStartListening: () => void;
   onStopListening: () => void;
+  onEndConversation: () => void;
 }
 
 export const TrainerContent = ({
@@ -24,7 +26,8 @@ export const TrainerContent = ({
   timeSpent,
   userRole,
   onStartListening,
-  onStopListening
+  onStopListening,
+  onEndConversation
 }: TrainerContentProps) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -60,6 +63,20 @@ export const TrainerContent = ({
             </div>
           )}
         </div>
+
+        {/* End conversation button under timer */}
+        {isListening && conversationMessagesCount > 0 && (
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEndConversation}
+              className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100"
+            >
+              Завершить и получить анализ
+            </Button>
+          </div>
+        )}
 
         {conversationMessagesCount > 0 && (
           <div className="mt-4 text-sm text-gray-600">

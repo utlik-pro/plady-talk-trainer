@@ -32,16 +32,6 @@ export const TrainerHeader = ({
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          {isListening && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onEndConversation}
-              className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100"
-            >
-              Завершить и получить анализ
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="sm"
