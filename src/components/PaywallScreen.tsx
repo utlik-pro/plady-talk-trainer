@@ -14,12 +14,14 @@ export const PaywallScreen = ({ onBack, onSubscribe }: PaywallScreenProps) => {
   const { sessions } = useConversationHistory();
 
   const handleSubscribe = () => {
-    // Mock subscription - replace with real payment integration
+    // Переход в Telegram канал для оплаты подписки
+    window.open('https://t.me/dmitryutlik', '_blank');
+    
+    // Показываем уведомление
     toast({
-      title: "Подписка оформлена!",
-      description: "Добро пожаловать в Plady Premium!"
+      title: "Переход к оплате",
+      description: "Открывается Telegram для оформления подписки"
     });
-    onSubscribe();
   };
 
   const isSessionLimitReached = profile?.role === 'free' && sessions.length >= 3;

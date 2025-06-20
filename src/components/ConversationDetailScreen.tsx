@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Play, Pause, Loader2, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Loader2, MessageSquare, Volume2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { conversationService } from '@/services/conversationService';
 import { ConversationAnalysis } from './ConversationAnalysis';
+import { FullAudioPlayer } from './FullAudioPlayer';
 import type { ConversationSession, ConversationMessage, Character } from '@/types/conversation';
 
 interface ConversationDetailScreenProps {
@@ -18,6 +18,7 @@ export const ConversationDetailScreen = ({ session, onBack }: ConversationDetail
   const [loading, setLoading] = useState(true);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showFullAudioPlayer, setShowFullAudioPlayer] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -113,6 +114,16 @@ export const ConversationDetailScreen = ({ session, onBack }: ConversationDetail
     );
   }
 
+  if (showFullAudioPlayer) {
+    return (
+      <FullAudioPlayer
+        messages={messages}
+        character={character}
+        onClose={() => setShowFullAudioPlayer(false)}
+      />
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-plady-light to-white flex items-center justify-center">
@@ -130,10 +141,20 @@ export const ConversationDetailScreen = ({ session, onBack }: ConversationDetail
             <ArrowLeft className="w-4 h-4" />
             <span>Назад к истории</span>
           </Button>
-          <Button onClick={handleAnalyze} className="bg-gradient-to-r from-plady-pink to-plady-purple">
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Анализ разговора
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => setShowFullAudioPlayer(true)} 
+              variant="outline"
+              className="flex items-center space-x-2"
+            >
+              <Volume2 className="w-4 h-4" />
+              <span>Слушать всё</span>
+            </Button>
+            <Button onClick={handleAnalyze} className="bg-gradient-to-r from-plady-pink to-plady-purple">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Анализ разговора
+            </Button>
+          </div>
         </div>
 
         {/* Session Info */}
