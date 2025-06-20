@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admins: {
+        Row: {
+          created_at: string
+          id: string
+          password_hash: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password_hash: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password_hash?: string
+          username?: string
+        }
+        Relationships: []
+      }
       conversation_analysis: {
         Row: {
           areas_for_improvement: string[] | null
@@ -127,29 +148,83 @@ export type Database = {
         }
         Relationships: []
       }
+      elevenlabs_usage: {
+        Row: {
+          characters_count: number
+          cost: number
+          created_at: string
+          id: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          characters_count?: number
+          cost?: number
+          created_at?: string
+          id?: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          characters_count?: number
+          cost?: number
+          created_at?: string
+          id?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "elevenlabs_usage_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "elevenlabs_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
+          elevenlabs_usage_count: number | null
           email: string | null
           id: string
+          is_banned: boolean | null
           registration_date: string | null
           role: string | null
+          subscription_expires_at: string | null
+          total_spent: number | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          elevenlabs_usage_count?: number | null
           email?: string | null
           id: string
+          is_banned?: boolean | null
           registration_date?: string | null
           role?: string | null
+          subscription_expires_at?: string | null
+          total_spent?: number | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          elevenlabs_usage_count?: number | null
           email?: string | null
           id?: string
+          is_banned?: boolean | null
           registration_date?: string | null
           role?: string | null
+          subscription_expires_at?: string | null
+          total_spent?: number | null
           updated_at?: string | null
         }
         Relationships: []

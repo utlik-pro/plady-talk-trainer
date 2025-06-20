@@ -1,7 +1,8 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { useProgress } from '@/hooks/useProgress';
+import { useTrainingStats } from '@/hooks/useTrainingStats';
+import { toast } from '@/hooks/use-toast';
 
 interface ProfileScreenProps {
   onLogout: () => void;
@@ -9,11 +10,19 @@ interface ProfileScreenProps {
 
 export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
   const { user, profile, logout } = useAuth();
-  const { progress } = useProgress();
+  const { stats, loading: statsLoading } = useTrainingStats();
 
   const handleLogout = async () => {
     await logout();
     onLogout();
+  };
+
+  const handleUpgradeSubscription = () => {
+    window.open('https://t.me/dmitryutlik', '_blank');
+    toast({
+      title: "Переход к оплате",
+      description: "Открывается Telegram для оформления подписки"
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -24,10 +33,10 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
     }).format(new Date(dateString));
   };
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}ч ${minutes}м`;
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}ч ${remainingMinutes}м`;
   };
 
   if (!profile) {
@@ -57,18 +66,18 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
             <div className="text-center">
               <div className="text-2xl font-bold text-plady-purple mb-1">
-                {progress.level}
+                {stats.totalSessions}
               </div>
-              <div className="text-sm text-gray-600">Уровень</div>
+              <div className="text-sm text-gray-600">Сессий</div>
             </div>
           </div>
           
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
             <div className="text-center">
               <div className="text-2xl font-bold text-plady-pink mb-1">
-                {formatTime(progress.trainingTime)}
+                {statsLoading ? '...' : formatTime(stats.totalMinutes)}
               </div>
-              <div className="text-sm text-gray-600">Тренировок</div>
+              <div className="text-sm text-gray-600">Время тренировок</div>
             </div>
           </div>
         </div>
@@ -93,6 +102,7 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
             </div>
             {profile.role === 'free' && (
               <Button 
+                onClick={handleUpgradeSubscription}
                 size="sm"
                 className="bg-gradient-to-r from-plady-pink to-plady-purple text-white"
               >
@@ -101,6 +111,47 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
             )}
           </div>
         </div>
+
+        {/* Progress Overview */}
+        {!statsLoading && stats.overallRecommendations.length > 0 && (
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+            <h2 className="text-lg font-semibold mb-4">Общий прогресс</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium text-gray-800 mb-2">Рекомендации:</h3>
+                <ul className="space-y-1">
+                  {stats.overallRecommendations.slice(0, 3).map((recommendation, index) => (
+                    <li key={index} className="text-sm text-gray-600 flex items-start">
+                      <span className="text-green-500 mr-2">•</span>
+                      {recommendation}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {stats.areasToImprove.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-gray-800 mb-2">Области для улучшения:</h3>
+                  <ul className="space-y-1">
+                    {stats.areasToImprove.slice(0, 3).map((area, index) => (
+                      <li key={index} className="text-sm text-gray-600 flex items-start">
+                        <span className="text-orange-500 mr-2">•</span>
+                        {area}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-gray-100">
+                <p className="text-sm text-gray-600">
+                  Продолжайте тренировки для достижения лучших результатов! 
+                  Рекомендуем провести еще {Math.max(0, 10 - stats.totalSessions)} сессий для закрепления навыков.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Account Info */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
@@ -124,6 +175,10 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
                 {profile.role === 'premium' ? 'Премиум пользователь' : 'Бесплатный аккаунт'}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Всего сообщений:</span>
+              <span className="font-medium">{stats.totalMessages}</span>
+            </div>
           </div>
         </div>
 
@@ -131,26 +186,29 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
           <h2 className="text-lg font-semibold mb-4">Достижения</h2>
           <div className="space-y-3">
-            <div className="flex items-center space-x-3">
+            <div className={`flex items-center space-x-3 ${stats.totalSessions >= 1 ? '' : 'opacity-50'}`}>
               <div className="text-2xl">🎯</div>
               <div>
                 <div className="font-medium">Первые шаги</div>
                 <div className="text-sm text-gray-600">Завершил первую тренировку</div>
               </div>
+              {stats.totalSessions >= 1 && <div className="text-green-500 text-sm">✓</div>}
             </div>
-            <div className="flex items-center space-x-3 opacity-50">
+            <div className={`flex items-center space-x-3 ${stats.totalSessions >= 5 ? '' : 'opacity-50'}`}>
               <div className="text-2xl">💪</div>
               <div>
-                <div className="font-medium">Настойчивость</div>
-                <div className="text-sm text-gray-600">10 тренировок подряд</div>
+                <div className="font-medium">Постоянство</div>
+                <div className="text-sm text-gray-600">5 тренировок завершено</div>
               </div>
+              {stats.totalSessions >= 5 && <div className="text-green-500 text-sm">✓</div>}
             </div>
-            <div className="flex items-center space-x-3 opacity-50">
+            <div className={`flex items-center space-x-3 ${stats.totalSessions >= 10 ? '' : 'opacity-50'}`}>
               <div className="text-2xl">🏆</div>
               <div>
                 <div className="font-medium">Мастер общения</div>
-                <div className="text-sm text-gray-600">Достиг 10 уровня</div>
+                <div className="text-sm text-gray-600">10 тренировок завершено</div>
               </div>
+              {stats.totalSessions >= 10 && <div className="text-green-500 text-sm">✓</div>}
             </div>
           </div>
         </div>
