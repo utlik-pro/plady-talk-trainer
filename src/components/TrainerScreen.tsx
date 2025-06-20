@@ -1,9 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProgress } from '@/hooks/useProgress';
+import { useVoiceChat } from '@/hooks/useVoiceChat';
 import { toast } from '@/hooks/use-toast';
+import { VoiceSetupModal } from './VoiceSetupModal';
+import { VoiceInterface } from './VoiceInterface';
 
 interface TrainerScreenProps {
   onPaywallReached: () => void;
@@ -52,10 +55,14 @@ const scenarios = [
 
 export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
   const { user } = useAuth();
-  const { progress, addChatMessage, incrementTrainingTime } = useProgress();
+  const { incrementTrainingTime } = useProgress();
+  const voiceChat = useVoiceChat();
+  
   const [currentScenario, setCurrentScenario] = useState(0);
   const [chatHistory, setChatHistory] = useState<Array<{text: string, sender: 'user' | 'character'}>>([]);
   const [timeSpent, setTimeSpent] = useState(0);
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [showVoiceSetup, setShowVoiceSetup] = useState(false);
 
   useEffect(() => {
     // Initialize first message
@@ -85,6 +92,16 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
 
     return () => clearInterval(timer);
   }, [user, incrementTrainingTime, onPaywallReached]);
+
+  // Speak character message when it's added
+  useEffect(() => {
+    if (isVoiceMode && voiceChat.isConfigured && chatHistory.length > 0) {
+      const lastMessage = chatHistory[chatHistory.length - 1];
+      if (lastMessage.sender === 'character') {
+        voiceChat.speak(lastMessage.text);
+      }
+    }
+  }, [chatHistory, isVoiceMode, voiceChat]);
 
   const handleReplySelect = (reply: Reply) => {
     // Add user message
@@ -119,6 +136,22 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
     }, 1000);
   };
 
+  const handleVoiceSetup = (apiKey: string) => {
+    voiceChat.configure({ apiKey });
+    toast({
+      title: "Голосовой чат настроен!",
+      description: "Теперь вы можете общаться голосом с Анной"
+    });
+  };
+
+  const toggleVoiceMode = () => {
+    if (!voiceChat.isConfigured) {
+      setShowVoiceSetup(true);
+      return;
+    }
+    setIsVoiceMode(!isVoiceMode);
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -139,16 +172,33 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
               <p className="text-sm text-gray-500">Уровень 1</p>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-sm text-gray-500">Время тренировки</div>
-            <div className="font-mono font-semibold text-plady-purple">
-              {formatTime(timeSpent)}
-            </div>
-            {user?.role === 'free' && (
-              <div className="text-xs text-plady-pink">
-                Осталось: {formatTime(180 - timeSpent)}
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleVoiceMode}
+              className={isVoiceMode ? 'bg-plady-pink text-white' : ''}
+            >
+              🎤 {isVoiceMode ? 'Голосовой' : 'Текстовый'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowVoiceSetup(true)}
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+            <div className="text-right">
+              <div className="text-sm text-gray-500">Время тренировки</div>
+              <div className="font-mono font-semibold text-plady-purple">
+                {formatTime(timeSpent)}
               </div>
-            )}
+              {user?.role === 'free' && (
+                <div className="text-xs text-plady-pink">
+                  Осталось: {formatTime(180 - timeSpent)}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -180,26 +230,47 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
         ))}
       </div>
 
-      {/* Reply options */}
-      <div className="p-4 bg-white border-t border-gray-100">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Выбери ответ:</h3>
-        <div className="space-y-2">
-          {scenario.replies.map((reply) => (
-            <Button
-              key={reply.id}
-              variant="outline"
-              className={`w-full text-left justify-start p-3 h-auto hover:shadow-md transition-all duration-200 ${
-                reply.type === 'good' ? 'border-green-200 hover:border-green-300 hover:bg-green-50' :
-                reply.type === 'bad' ? 'border-red-200 hover:border-red-300 hover:bg-red-50' :
-                'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-              onClick={() => handleReplySelect(reply)}
-            >
-              <div className="text-wrap text-sm">{reply.text}</div>
-            </Button>
-          ))}
+      {/* Voice Interface */}
+      {isVoiceMode && voiceChat.isConfigured && (
+        <div className="p-4">
+          <VoiceInterface
+            isListening={voiceChat.isListening}
+            isSpeaking={voiceChat.isSpeaking}
+            onStartListening={voiceChat.startListening}
+            onStopListening={voiceChat.stopListening}
+          />
         </div>
-      </div>
+      )}
+
+      {/* Reply options - only show in text mode */}
+      {!isVoiceMode && (
+        <div className="p-4 bg-white border-t border-gray-100">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Выбери ответ:</h3>
+          <div className="space-y-2">
+            {scenario.replies.map((reply) => (
+              <Button
+                key={reply.id}
+                variant="outline"
+                className={`w-full text-left justify-start p-3 h-auto hover:shadow-md transition-all duration-200 ${
+                  reply.type === 'good' ? 'border-green-200 hover:border-green-300 hover:bg-green-50' :
+                  reply.type === 'bad' ? 'border-red-200 hover:border-red-300 hover:bg-red-50' :
+                  'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+                onClick={() => handleReplySelect(reply)}
+              >
+                <div className="text-wrap text-sm">{reply.text}</div>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Voice Setup Modal */}
+      <VoiceSetupModal
+        isOpen={showVoiceSetup}
+        onClose={() => setShowVoiceSetup(false)}
+        onSave={handleVoiceSetup}
+      />
     </div>
   );
 };
