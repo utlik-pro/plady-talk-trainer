@@ -8,9 +8,9 @@ interface VoiceChatConfig {
 }
 
 export const useVoiceChat = () => {
-  const [apiKey, setApiKey] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string>('sk_c6dfeb28d2cc4b3c7cac8b5324875cc07b9751bd7a3d4084');
   const [agentId, setAgentId] = useState<string>('agent_01jy3m8mhpe3092q9cmsvzcwe8');
-  const [isConfigured, setIsConfigured] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(true); // Сразу настроен
   
   const conversation = useConversation({
     onConnect: () => {
@@ -44,18 +44,16 @@ export const useVoiceChat = () => {
 
     try {
       console.log('Requesting microphone access...');
-      // Request microphone access first
       await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log('Microphone access granted');
       
       console.log('Getting signed URL from ElevenLabs...');
-      // Generate signed URL for the agent
       const response = await fetch(
         `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
         {
           method: 'GET',
           headers: {
-            'xi-api-key': apiKey // Используем правильный API ключ, а не agent_id
+            'xi-api-key': apiKey
           }
         }
       );
@@ -69,7 +67,6 @@ export const useVoiceChat = () => {
       const { signed_url } = await response.json();
       console.log('Got signed URL, starting session...');
       
-      // Start the conversation with the correct parameter name
       await conversation.startSession({
         signedUrl: signed_url
       });

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
@@ -6,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProgress } from '@/hooks/useProgress';
 import { useVoiceChat } from '@/hooks/useVoiceChat';
 import { toast } from '@/hooks/use-toast';
-import { VoiceSetupModal } from './VoiceSetupModal';
 import { VoiceInterface } from './VoiceInterface';
 
 interface TrainerScreenProps {
@@ -63,7 +61,6 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
   const [chatHistory, setChatHistory] = useState<Array<{text: string, sender: 'user' | 'character'}>>([]);
   const [timeSpent, setTimeSpent] = useState(0);
   const [isVoiceMode, setIsVoiceMode] = useState(false);
-  const [showVoiceSetup, setShowVoiceSetup] = useState(false);
 
   useEffect(() => {
     // Initialize first message only in text mode
@@ -127,31 +124,15 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
     }, 1000);
   };
 
-  const handleVoiceSetup = (apiKey: string) => {
-    voiceChat.configure({ 
-      apiKey, 
-      agentId: 'agent_01jy3m8mhpe3092q9cmsvzcwe8' 
-    });
-    toast({
-      title: "Голосовой чат настроен!",
-      description: "Теперь вы можете общаться голосом с Анной"
-    });
-  };
-
   const toggleVoiceMode = () => {
-    if (!voiceChat.isConfigured) {
-      setShowVoiceSetup(true);
-      return;
-    }
-    
-    // If currently listening, stop the conversation first
+    // Если сейчас слушаем, остановить разговор перед переключением
     if (voiceChat.isListening) {
       voiceChat.stopListening();
     }
     
     setIsVoiceMode(!isVoiceMode);
     
-    // Clear chat history when switching modes
+    // Очистить историю чата при переключении режимов
     setChatHistory([]);
     
     console.log('Switched to', !isVoiceMode ? 'voice' : 'text', 'mode');
@@ -185,13 +166,6 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
               className={isVoiceMode ? 'bg-plady-pink text-white' : ''}
             >
               🎤 {isVoiceMode ? 'Голосовой' : 'Текстовый'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowVoiceSetup(true)}
-            >
-              <Settings className="w-4 h-4" />
             </Button>
             <div className="text-right">
               <div className="text-sm text-gray-500">Время тренировки</div>
@@ -249,7 +223,7 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
       )}
 
       {/* Voice Interface */}
-      {isVoiceMode && voiceChat.isConfigured && (
+      {isVoiceMode && (
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center space-y-6">
             <div className="text-6xl mb-4">{character.avatar}</div>
@@ -287,13 +261,6 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
           </div>
         </div>
       )}
-
-      {/* Voice Setup Modal */}
-      <VoiceSetupModal
-        isOpen={showVoiceSetup}
-        onClose={() => setShowVoiceSetup(false)}
-        onSave={handleVoiceSetup}
-      />
     </div>
   );
 };
