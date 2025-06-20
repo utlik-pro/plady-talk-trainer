@@ -30,17 +30,18 @@ export const useVoiceChat = () => {
     onMessage: (message) => {
       console.log('Received message:', message);
       
-      // Обрабатываем разные типы сообщений от ElevenLabs
-      if (message.type === 'user_transcript' && message.user_transcript?.final) {
+      // Handle messages based on the actual structure from ElevenLabs
+      // The message object has: { message: string, source: Role }
+      if (message.source === 'user') {
         const newMessage: ConversationMessage = {
-          text: message.user_transcript.text,
+          text: message.message,
           sender: 'user',
           timestamp: new Date()
         };
         setMessages(prev => [...prev, newMessage]);
-      } else if (message.type === 'agent_response') {
+      } else if (message.source === 'agent') {
         const newMessage: ConversationMessage = {
-          text: message.agent_response?.text || '',
+          text: message.message,
           sender: 'character',
           timestamp: new Date()
         };
