@@ -89,10 +89,15 @@ ${conversationText}
       }
 
       const data = await response.json();
-      const analysisText = data.choices[0].message.content;
+      let analysisText = data.choices[0].message.content;
+      
+      // Убираем markdown разметку если она есть
+      if (analysisText.includes('```json')) {
+        analysisText = analysisText.replace(/```json\n?/g, '').replace(/```/g, '');
+      }
       
       try {
-        const parsedAnalysis = JSON.parse(analysisText);
+        const parsedAnalysis = JSON.parse(analysisText.trim());
         setAnalysis(parsedAnalysis);
         
         // Сохраняем анализ в базу данных
@@ -103,6 +108,7 @@ ${conversationText}
         
       } catch (parseError) {
         console.error('Failed to parse analysis JSON:', parseError);
+        console.error('Raw response:', analysisText);
         throw new Error('Не удалось распарсить ответ от ChatGPT');
       }
 

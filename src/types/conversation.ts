@@ -8,6 +8,7 @@ export interface ConversationSession {
   end_time: string | null;
   duration_seconds: number;
   total_messages: number;
+  created_at: string;
   analysis?: {
     overall_score: number;
     strengths: string[];

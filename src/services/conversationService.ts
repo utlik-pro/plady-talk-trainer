@@ -33,8 +33,24 @@ export const conversationService = {
       end_time: session.end_time,
       duration_seconds: session.duration_seconds,
       total_messages: session.total_messages,
+      created_at: session.created_at,
       analysis: session.conversation_analysis?.[0] || undefined
     })) || [];
+  },
+
+  async fetchMessages(sessionId: string) {
+    const { data, error } = await supabase
+      .from('conversation_messages')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('timestamp', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching messages:', error);
+      throw error;
+    }
+
+    return data || [];
   },
 
   async createSession(userId: string, character: Character): Promise<string | null> {

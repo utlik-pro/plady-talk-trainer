@@ -64,7 +64,6 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
       <ConversationDetailScreen
         session={selectedSession}
         onBack={() => setSelectedSession(null)}
-        onAnalyze={handleAnalyze}
       />
     );
   }
