@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import { useConversationHistory } from '@/hooks/useConversationHistory';
 
 interface ConversationAnalysisProps {
-  messages: Array<{text: string, sender: 'user' | 'character'}>;
+  messages: Array<{text?: string, message_text?: string, sender: 'user' | 'character'}>;
   character: {name: string, avatar: string, personality: string};
   sessionId: string | null;
   onStartNew: () => void;
@@ -24,28 +25,21 @@ interface AnalysisResult {
 export const ConversationAnalysis = ({ messages, character, sessionId, onStartNew }: ConversationAnalysisProps) => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [apiKey, setApiKey] = useState('');
-  const [showApiInput, setShowApiInput] = useState(false);
   const { saveAnalysis } = useConversationHistory();
 
   useEffect(() => {
-    // Проверяем есть ли сохраненный API ключ
-    const storedApiKey = localStorage.getItem('openai_api_key');
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-      analyzeConversation(storedApiKey);
-    } else {
-      setShowApiInput(true);
-      setIsLoading(false);
-    }
+    analyzeConversation();
   }, []);
 
-  const analyzeConversation = async (openaiApiKey: string) => {
+  const analyzeConversation = async () => {
     setIsLoading(true);
     
     try {
       const conversationText = messages
-        .map(msg => `${msg.sender === 'user' ? 'Пользователь' : character.name}: ${msg.text}`)
+        .map(msg => {
+          const text = msg.text || msg.message_text || '';
+          return `${msg.sender === 'user' ? 'Пользователь' : character.name}: ${text}`;
+        })
         .join('\n');
 
       const prompt = `
@@ -70,11 +64,11 @@ ${conversationText}
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
+          'Authorization': `Bearer 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`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4-turbo-preview',
+          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',
@@ -116,55 +110,13 @@ ${conversationText}
       console.error('Analysis failed:', error);
       toast({
         title: "Ошибка анализа",
-        description: "Не удалось проанализировать разговор. Проверьте API ключ.",
+        description: "Не удалось проанализировать разговор",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleApiKeySubmit = () => {
-    if (!apiKey.trim()) {
-      toast({
-        title: "Ошибка",
-        description: "Введите API ключ OpenAI",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    localStorage.setItem('openai_api_key', apiKey);
-    setShowApiInput(false);
-    analyzeConversation(apiKey);
-  };
-
-  if (showApiInput) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-plady-light to-white flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center">Настройка анализа</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Для анализа разговора нужен API ключ OpenAI
-            </p>
-            <input
-              type="password"
-              placeholder="sk-..."
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-            <Button onClick={handleApiKeySubmit} className="w-full">
-              Сохранить и проанализировать
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -282,7 +234,7 @@ ${conversationText}
         <div className="flex justify-center space-x-4">
           <Button onClick={onStartNew} className="bg-gradient-to-r from-plady-pink to-plady-purple">
             <RotateCcw className="w-4 h-4 mr-2" />
-            Новый разговор
+            Назад к истории
           </Button>
         </div>
       </div>

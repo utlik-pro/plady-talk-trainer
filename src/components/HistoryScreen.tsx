@@ -1,8 +1,12 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversationHistory } from '@/hooks/useConversationHistory';
 import { ArrowLeft, BarChart3, Clock, MessageSquare, Target, FileText } from 'lucide-react';
+import { ConversationDetailScreen } from './ConversationDetailScreen';
+import { ConversationAnalysis } from './ConversationAnalysis';
+import type { ConversationSession, ConversationMessage } from '@/types/conversation';
 
 interface HistoryScreenProps {
   onBack: () => void;
@@ -11,6 +15,12 @@ interface HistoryScreenProps {
 export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
   const { user } = useAuth();
   const { sessions, loading } = useConversationHistory();
+  const [selectedSession, setSelectedSession] = useState<ConversationSession | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysisData, setAnalysisData] = useState<{
+    messages: ConversationMessage[];
+    session: ConversationSession;
+  } | null>(null);
 
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('ru-RU', {
@@ -33,10 +43,49 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
     return 'text-red-600';
   };
 
+  const handleAnalyze = (messages: ConversationMessage[], session: ConversationSession) => {
+    setAnalysisData({ messages, session });
+    setShowAnalysis(true);
+  };
+
+  const handleBackFromAnalysis = () => {
+    setShowAnalysis(false);
+    setAnalysisData(null);
+  };
+
   const totalDuration = sessions.reduce((acc, session) => acc + session.duration_seconds, 0);
   const averageScore = sessions.length > 0 
     ? sessions.reduce((acc, session) => acc + (session.analysis?.overall_score || 0), 0) / sessions.length
     : 0;
+
+  // Show conversation detail screen
+  if (selectedSession && !showAnalysis) {
+    return (
+      <ConversationDetailScreen
+        session={selectedSession}
+        onBack={() => setSelectedSession(null)}
+        onAnalyze={handleAnalyze}
+      />
+    );
+  }
+
+  // Show analysis screen
+  if (showAnalysis && analysisData) {
+    const character = {
+      name: analysisData.session.character_name,
+      avatar: analysisData.session.character_avatar,
+      personality: analysisData.session.character_personality
+    };
+
+    return (
+      <ConversationAnalysis
+        messages={analysisData.messages}
+        character={character}
+        sessionId={analysisData.session.id}
+        onStartNew={handleBackFromAnalysis}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
@@ -111,7 +160,11 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
             </div>
           ) : (
             sessions.map((session) => (
-              <div key={session.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div 
+                key={session.id} 
+                className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setSelectedSession(session)}
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">
