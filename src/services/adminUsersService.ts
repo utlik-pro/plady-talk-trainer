@@ -9,7 +9,7 @@ export const adminUsersService = {
     
     // Используем RPC функцию для получения всех пользователей с правами администратора
     const { data: profiles, error: profilesError } = await supabase
-      .rpc('get_all_users_admin');
+      .rpc('get_all_users_admin' as any);
 
     if (profilesError) {
       console.error('Error fetching profiles:', profilesError);
