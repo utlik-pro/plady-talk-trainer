@@ -17,6 +17,9 @@ interface User {
   total_spent: number;
   elevenlabs_usage_count: number;
   registration_date: string;
+  total_sessions: number;
+  total_conversations: number;
+  last_activity: string | null;
 }
 
 export const AdminDashboard = () => {
