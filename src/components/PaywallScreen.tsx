@@ -83,7 +83,7 @@ export const PaywallScreen = ({ onBack, onSubscribe }: PaywallScreenProps) => {
         {/* Pricing */}
         <div className="bg-gradient-to-r from-plady-pink to-plady-purple p-6 rounded-2xl text-white mb-6">
           <div className="text-center">
-            <div className="text-3xl font-bold mb-1">₽599</div>
+            <div className="text-3xl font-bold mb-1">$9.99</div>
             <div className="text-sm opacity-90">в месяц</div>
             <div className="text-xs opacity-75 mt-2">Отмена в любое время</div>
           </div>
