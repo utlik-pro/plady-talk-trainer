@@ -1,6 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useConversationHistory } from '@/hooks/useConversationHistory';
 import { toast } from '@/hooks/use-toast';
 
 interface PaywallScreenProps {
@@ -9,7 +10,8 @@ interface PaywallScreenProps {
 }
 
 export const PaywallScreen = ({ onBack, onSubscribe }: PaywallScreenProps) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { sessions } = useConversationHistory();
 
   const handleSubscribe = () => {
     // Mock subscription - replace with real payment integration
@@ -20,22 +22,36 @@ export const PaywallScreen = ({ onBack, onSubscribe }: PaywallScreenProps) => {
     onSubscribe();
   };
 
+  const isSessionLimitReached = profile?.role === 'free' && sessions.length >= 3;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-plady-pink via-plady-purple to-plady-dark flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl animate-fade-in">
         {/* Icon */}
         <div className="text-center mb-6">
-          <div className="text-6xl mb-4">⏰</div>
+          <div className="text-6xl mb-4">{isSessionLimitReached ? '🔒' : '⏰'}</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Время бесплатного доступа истекло
+            {isSessionLimitReached 
+              ? 'Лимит сессий исчерпан' 
+              : 'Время бесплатного доступа истекло'
+            }
           </h1>
           <p className="text-gray-600">
-            Продолжи обучение с подпиской Plady Premium
+            {isSessionLimitReached 
+              ? `Вы использовали ${sessions.length} из 3 доступных сессий`
+              : 'Продолжи обучение с подпиской Plady Premium'
+            }
           </p>
         </div>
 
         {/* Features */}
         <div className="space-y-4 mb-8">
+          <div className="flex items-center space-x-3">
+            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+              <span className="text-green-600 text-sm">✓</span>
+            </div>
+            <span className="text-gray-700">Безлимитное количество сессий</span>
+          </div>
           <div className="flex items-center space-x-3">
             <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
               <span className="text-green-600 text-sm">✓</span>

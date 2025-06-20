@@ -5,7 +5,7 @@ import { conversationService } from '@/services/conversationService';
 import type { ConversationSession, Character, ConversationAnalysis } from '@/types/conversation';
 
 export const useConversationHistory = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [sessions, setSessions] = useState<ConversationSession[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -23,11 +23,26 @@ export const useConversationHistory = () => {
     }
   };
 
+  const canCreateNewSession = () => {
+    if (profile?.role === 'premium') return true;
+    return sessions.length < 3; // Ограничение для бесплатного тарифа
+  };
+
   const createSession = async (character: Character) => {
     if (!user) return null;
 
+    // Проверяем лимит для бесплатного тарифа
+    if (!canCreateNewSession()) {
+      throw new Error('SESSION_LIMIT_REACHED');
+    }
+
     try {
-      return await conversationService.createSession(user.id, character);
+      const sessionId = await conversationService.createSession(user.id, character);
+      if (sessionId) {
+        // Обновляем список сессий после создания новой
+        await fetchSessions();
+      }
+      return sessionId;
     } catch (error) {
       console.error('Error in createSession:', error);
       return null;
@@ -67,6 +82,7 @@ export const useConversationHistory = () => {
   return {
     sessions,
     loading,
+    canCreateNewSession,
     createSession,
     endSession,
     addMessage,

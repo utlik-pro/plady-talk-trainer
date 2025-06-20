@@ -28,7 +28,7 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
   const { incrementTrainingTime } = useProgress();
   const voiceChat = useVoiceChat();
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const { createSession, endSession } = useConversationHistory();
+  const { createSession, endSession, canCreateNewSession, sessions } = useConversationHistory();
 
   const { timeSpent, resetTimer } = useTrainerTimer({
     userRole: profile?.role || 'free',
@@ -55,6 +55,18 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
 
   const handleStartConversation = async () => {
     if (!user) return;
+    
+    // Проверяем лимит сессий для бесплатного тарифа
+    if (!canCreateNewSession()) {
+      console.log('Session limit reached for free user:', sessions.length);
+      toast({
+        title: "Лимит исчерпан",
+        description: "Доступно только 3 сессии в бесплатном тарифе",
+        variant: "destructive"
+      });
+      onPaywallReached();
+      return;
+    }
     
     try {
       console.log('Starting new conversation...');
@@ -95,6 +107,17 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
 
     } catch (error) {
       console.error('Error starting conversation:', error);
+      
+      if (error instanceof Error && error.message === 'SESSION_LIMIT_REACHED') {
+        toast({
+          title: "Лимит исчерпан",
+          description: "Доступно только 3 сессии в бесплатном тарифе",
+          variant: "destructive"
+        });
+        onPaywallReached();
+        return;
+      }
+      
       toast({
         title: "Ошибка",
         description: "Не удалось начать разговор",
