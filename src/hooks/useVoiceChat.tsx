@@ -9,6 +9,7 @@ interface VoiceChatConfig {
 
 export const useVoiceChat = () => {
   const [apiKey, setApiKey] = useState<string>('');
+  const [agentId, setAgentId] = useState<string>('agent_01jy3m8mhpe3092q9cmsvzcwe8');
   const [isConfigured, setIsConfigured] = useState(false);
   
   const conversation = useConversation({
@@ -28,6 +29,9 @@ export const useVoiceChat = () => {
 
   const configure = useCallback((config: VoiceChatConfig) => {
     setApiKey(config.apiKey);
+    if (config.agentId) {
+      setAgentId(config.agentId);
+    }
     setIsConfigured(!!config.apiKey);
     console.log('Voice chat configured with API key');
   }, []);
@@ -47,11 +51,11 @@ export const useVoiceChat = () => {
       console.log('Getting signed URL from ElevenLabs...');
       // Generate signed URL for the agent
       const response = await fetch(
-        `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=agent_01jy3m8mhpe3092q9cmsvzcwe8`,
+        `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
         {
           method: 'GET',
           headers: {
-            'xi-api-key': apiKey
+            'xi-api-key': apiKey // Используем правильный API ключ, а не agent_id
           }
         }
       );
@@ -74,7 +78,7 @@ export const useVoiceChat = () => {
     } catch (error) {
       console.error('Error starting conversation:', error);
     }
-  }, [apiKey, conversation]);
+  }, [apiKey, agentId, conversation]);
 
   const stopListening = useCallback(async () => {
     try {
@@ -90,6 +94,7 @@ export const useVoiceChat = () => {
     isListening: conversation.status === 'connected',
     isSpeaking: conversation.isSpeaking,
     isConfigured,
+    agentId,
     configure,
     startListening,
     stopListening

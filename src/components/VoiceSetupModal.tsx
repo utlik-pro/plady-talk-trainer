@@ -40,6 +40,17 @@ export const VoiceSetupModal = ({ isOpen, onClose, onSave }: VoiceSetupModalProp
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="agentid" className="text-right">
+              Agent ID
+            </Label>
+            <Input
+              id="agentid"
+              value="agent_01jy3m8mhpe3092q9cmsvzcwe8"
+              readOnly
+              className="col-span-3 bg-gray-100"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="apikey" className="text-right">
               API Key
             </Label>

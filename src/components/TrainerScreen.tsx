@@ -128,7 +128,10 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
   };
 
   const handleVoiceSetup = (apiKey: string) => {
-    voiceChat.configure({ apiKey, agentId: 'agent_01jy3m8mhpe3092q9cmsvzcwe8' });
+    voiceChat.configure({ 
+      apiKey, 
+      agentId: 'agent_01jy3m8mhpe3092q9cmsvzcwe8' 
+    });
     toast({
       title: "Голосовой чат настроен!",
       description: "Теперь вы можете общаться голосом с Анной"
