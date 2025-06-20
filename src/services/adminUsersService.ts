@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { revenueService } from '@/services/revenueService';
 import { User } from '@/types/user';
 
 export const adminUsersService = {
