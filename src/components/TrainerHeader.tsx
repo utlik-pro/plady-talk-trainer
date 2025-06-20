@@ -1,5 +1,6 @@
 
 import { Button } from '@/components/ui/button';
+import { User } from 'lucide-react';
 
 interface TrainerHeaderProps {
   character: {
@@ -10,13 +11,15 @@ interface TrainerHeaderProps {
   isListening: boolean;
   userRole: 'free' | 'premium';
   onEndConversation: () => void;
+  onProfileClick: () => void;
 }
 
 export const TrainerHeader = ({ 
   character, 
   isListening, 
   userRole, 
-  onEndConversation 
+  onEndConversation,
+  onProfileClick
 }: TrainerHeaderProps) => {
   return (
     <div className="bg-white shadow-sm border-b border-gray-100 p-4">
@@ -39,6 +42,14 @@ export const TrainerHeader = ({
               Завершить и получить анализ
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onProfileClick}
+            className="text-gray-600 hover:text-gray-800"
+          >
+            <User className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </div>

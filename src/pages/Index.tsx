@@ -5,15 +5,17 @@ import { AuthScreen } from '@/components/AuthScreen';
 import { TrainerScreen } from '@/components/TrainerScreen';
 import { PaywallScreen } from '@/components/PaywallScreen';
 import { ProfileScreen } from '@/components/ProfileScreen';
+import { RecommendationsScreen } from '@/components/RecommendationsScreen';
+import { HistoryScreen } from '@/components/HistoryScreen';
 import { NavigationBar } from '@/components/NavigationBar';
 import { useAuth } from '@/hooks/useAuth';
 
-type AppScreen = 'onboarding' | 'auth' | 'trainer' | 'paywall' | 'profile';
+type AppScreen = 'onboarding' | 'auth' | 'trainer' | 'paywall' | 'profile' | 'recommendations' | 'history';
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('onboarding');
-  const [mainScreen, setMainScreen] = useState<'trainer' | 'profile'>('trainer');
+  const [mainScreen, setMainScreen] = useState<'trainer' | 'profile' | 'recommendations' | 'history'>('trainer');
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
 
   useEffect(() => {
@@ -55,8 +57,19 @@ const Index = () => {
     setCurrentScreen('auth');
   };
 
-  const handleScreenChange = (screen: 'trainer' | 'profile') => {
+  const handleScreenChange = (screen: 'trainer' | 'profile' | 'recommendations' | 'history') => {
     setMainScreen(screen);
+    setCurrentScreen(screen);
+  };
+
+  const handleProfileClick = () => {
+    setMainScreen('profile');
+    setCurrentScreen('profile');
+  };
+
+  const handleBackToTrainer = () => {
+    setMainScreen('trainer');
+    setCurrentScreen('trainer');
   };
 
   // Show onboarding if not seen
@@ -69,45 +82,44 @@ const Index = () => {
     return <AuthScreen onSuccess={handleAuthSuccess} />;
   }
 
+  // Show paywall
+  if (currentScreen === 'paywall') {
+    return (
+      <PaywallScreen 
+        onBack={handleBackToTrainer}
+        onSubscribe={handleSubscribe}
+      />
+    );
+  }
+
   // Main app screens
   return (
     <div className="min-h-screen bg-gray-50">
       {currentScreen === 'trainer' && (
-        <>
-          <TrainerScreen onPaywallReached={handlePaywallReached} />
-          <NavigationBar 
-            currentScreen={mainScreen} 
-            onScreenChange={handleScreenChange}
-          />
-        </>
+        <TrainerScreen 
+          onPaywallReached={handlePaywallReached} 
+          onProfileClick={handleProfileClick}
+        />
       )}
       
       {currentScreen === 'profile' && (
-        <>
-          <ProfileScreen onLogout={handleLogout} />
-          <NavigationBar 
-            currentScreen={mainScreen} 
-            onScreenChange={handleScreenChange}
-          />
-        </>
-      )}
-      
-      {currentScreen === 'paywall' && (
-        <PaywallScreen 
-          onBack={() => setCurrentScreen('trainer')}
-          onSubscribe={handleSubscribe}
-        />
+        <ProfileScreen onLogout={handleLogout} />
       )}
 
-      {/* Handle navigation between trainer and profile */}
-      {(currentScreen === 'trainer' || currentScreen === 'profile') && (
-        <div style={{ display: currentScreen === mainScreen ? 'block' : 'none' }}>
-          {mainScreen === 'trainer' ? (
-            <TrainerScreen onPaywallReached={handlePaywallReached} />
-          ) : (
-            <ProfileScreen onLogout={handleLogout} />
-          )}
-        </div>
+      {currentScreen === 'recommendations' && (
+        <RecommendationsScreen onBack={handleBackToTrainer} />
+      )}
+
+      {currentScreen === 'history' && (
+        <HistoryScreen onBack={handleBackToTrainer} />
+      )}
+
+      {/* Navigation Bar - show for main screens */}
+      {['trainer', 'profile', 'recommendations', 'history'].includes(currentScreen) && (
+        <NavigationBar 
+          currentScreen={mainScreen} 
+          onScreenChange={handleScreenChange}
+        />
       )}
     </div>
   );

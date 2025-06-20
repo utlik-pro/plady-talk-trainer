@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProgress } from '@/hooks/useProgress';
@@ -11,6 +12,7 @@ import { ConversationAnalysis } from './ConversationAnalysis';
 
 interface TrainerScreenProps {
   onPaywallReached: () => void;
+  onProfileClick: () => void;
 }
 
 interface Character {
@@ -25,7 +27,7 @@ const character: Character = {
   personality: "Дружелюбная и общительная девушка, любит интересные разговоры"
 };
 
-export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
+export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScreenProps) => {
   const { user } = useAuth();
   const { incrementTrainingTime } = useProgress();
   const voiceChat = useVoiceChat();
@@ -75,6 +77,7 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
         isListening={voiceChat.isListening}
         userRole={user?.role || 'free'}
         onEndConversation={handleEndConversation}
+        onProfileClick={onProfileClick}
       />
       
       <TrainerContent
