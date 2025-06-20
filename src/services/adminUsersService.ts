@@ -7,20 +7,34 @@ export const adminUsersService = {
   async fetchUsers(): Promise<User[]> {
     console.log('Fetching users...');
     
+    // Используем RPC функцию для получения всех пользователей с правами администратора
     const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('registration_date', { ascending: false });
+      .rpc('get_all_users_admin');
 
     if (profilesError) {
       console.error('Error fetching profiles:', profilesError);
-      throw profilesError;
+      // Fallback к обычному запросу если RPC функция не работает
+      const { data: fallbackProfiles, error: fallbackError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('registration_date', { ascending: false });
+      
+      if (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+        throw fallbackError;
+      }
+      
+      console.log('Using fallback profiles data:', fallbackProfiles);
+      return await this.enrichUsersWithStats(fallbackProfiles || []);
     }
 
-    console.log('Profiles data:', profiles);
+    console.log('Profiles data from RPC:', profiles);
+    return await this.enrichUsersWithStats(profiles || []);
+  },
 
+  async enrichUsersWithStats(profiles: any[]): Promise<User[]> {
     const usersWithStats = await Promise.all(
-      (profiles || []).map(async (profile) => {
+      profiles.map(async (profile) => {
         // Количество сессий
         const { count: sessionsCount } = await supabase
           .from('conversation_sessions')
