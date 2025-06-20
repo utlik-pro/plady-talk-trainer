@@ -1,6 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { ArrowLeft, BarChart3, Clock, MessageSquare, Target, FileText } from 'lucide-react';
 
 interface HistoryScreenProps {
   onBack: () => void;
@@ -85,11 +86,12 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
             onClick={onBack}
             className="text-white hover:bg-white/20"
           >
-            ← Назад
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Назад
           </Button>
         </div>
         <div className="text-center mt-4">
-          <div className="text-4xl mb-2">📊</div>
+          <BarChart3 className="w-12 h-12 mb-2 mx-auto" />
           <h1 className="text-2xl font-bold">История тренировок</h1>
           <p className="text-sm opacity-90">Все ваши разговоры и их анализ</p>
         </div>
@@ -148,18 +150,21 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
 
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center">
+                  <Clock className="w-5 h-5 mx-auto text-gray-400 mb-1" />
                   <div className="text-lg font-semibold text-gray-700">
                     {formatDuration(conversation.duration)}
                   </div>
                   <div className="text-xs text-gray-500">Длительность</div>
                 </div>
                 <div className="text-center">
+                  <MessageSquare className="w-5 h-5 mx-auto text-gray-400 mb-1" />
                   <div className="text-lg font-semibold text-gray-700">
                     {conversation.messagesCount}
                   </div>
                   <div className="text-xs text-gray-500">Сообщений</div>
                 </div>
                 <div className="text-center">
+                  <Target className="w-5 h-5 mx-auto text-gray-400 mb-1" />
                   <div className="text-lg font-semibold text-gray-700">
                     {conversation.recommendations.length}
                   </div>
@@ -168,10 +173,16 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="font-medium text-gray-700 mb-2">Анализ</h4>
+                <h4 className="font-medium text-gray-700 mb-2 flex items-center">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Анализ
+                </h4>
                 <p className="text-sm text-gray-600 mb-3">{conversation.analysis}</p>
                 
-                <h4 className="font-medium text-gray-700 mb-2">Рекомендации</h4>
+                <h4 className="font-medium text-gray-700 mb-2 flex items-center">
+                  <Target className="w-4 h-4 mr-2" />
+                  Рекомендации
+                </h4>
                 <div className="space-y-1">
                   {conversation.recommendations.map((rec, index) => (
                     <div key={index} className="flex items-center space-x-2">
@@ -187,7 +198,7 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
 
         {conversationHistory.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">📝</div>
+            <FileText className="w-16 h-16 mx-auto text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
               История пуста
             </h3>
@@ -199,4 +210,25 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
       </div>
     </div>
   );
+
+  function formatDate(date: Date) {
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  }
+
+  function formatDuration(seconds: number) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  function getScoreColor(score: number) {
+    if (score >= 8) return 'text-green-600';
+    if (score >= 7) return 'text-yellow-600';
+    return 'text-red-600';
+  }
 };

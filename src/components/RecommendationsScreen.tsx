@@ -1,6 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { ArrowLeft, TrendingUp, Clock, BookOpen, Ear, Lightbulb } from 'lucide-react';
 
 interface RecommendationsScreenProps {
   onBack: () => void;
@@ -15,28 +16,28 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
       title: "Улучшение интонации",
       description: "Работайте над выразительностью речи, добавляйте эмоциональные акценты",
       priority: "high",
-      icon: "🎭"
+      icon: <TrendingUp className="w-6 h-6" />
     },
     {
       id: 2,
       title: "Темп речи",
       description: "Старайтесь говорить медленнее, делайте паузы между предложениями",
       priority: "medium",
-      icon: "⏱️"
+      icon: <Clock className="w-6 h-6" />
     },
     {
       id: 3,
       title: "Словарный запас",
       description: "Используйте более разнообразные слова и выражения",
       priority: "low",
-      icon: "📚"
+      icon: <BookOpen className="w-6 h-6" />
     },
     {
       id: 4,
       title: "Активное слушание",
       description: "Больше задавайте уточняющих вопросов собеседнику",
       priority: "medium",
-      icon: "👂"
+      icon: <Ear className="w-6 h-6" />
     }
   ];
 
@@ -76,11 +77,12 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
             onClick={onBack}
             className="text-white hover:bg-white/20"
           >
-            ← Назад
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Назад
           </Button>
         </div>
         <div className="text-center mt-4">
-          <div className="text-4xl mb-2">💡</div>
+          <Lightbulb className="w-12 h-12 mb-2 mx-auto" />
           <h1 className="text-2xl font-bold">Рекомендации</h1>
           <p className="text-sm opacity-90">Персональные советы для улучшения навыков общения</p>
         </div>
@@ -113,7 +115,7 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
           {recommendations.map((rec) => (
             <div key={rec.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <div className="flex items-start space-x-4">
-                <div className="text-3xl">{rec.icon}</div>
+                <div className="text-plady-purple">{rec.icon}</div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-gray-800">{rec.title}</h3>
@@ -130,7 +132,10 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
 
         {/* Tips Section */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-6">
-          <h2 className="text-lg font-semibold mb-4">💡 Советы дня</h2>
+          <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <Lightbulb className="w-5 h-5 mr-2 text-plady-purple" />
+            Советы дня
+          </h2>
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-plady-purple rounded-full"></div>

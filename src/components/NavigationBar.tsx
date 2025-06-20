@@ -1,5 +1,6 @@
 
 import { Button } from '@/components/ui/button';
+import { Users, Lightbulb, BarChart3, User } from 'lucide-react';
 
 interface NavigationBarProps {
   currentScreen: 'trainer' | 'profile' | 'recommendations' | 'history';
@@ -20,7 +21,7 @@ export const NavigationBar = ({ currentScreen, onScreenChange }: NavigationBarPr
           onClick={() => onScreenChange('trainer')}
         >
           <div className="text-center">
-            <div className="text-lg mb-1">🎭</div>
+            <Users className="w-5 h-5 mb-1 mx-auto" />
             <div className="text-xs">Тренажёр</div>
           </div>
         </Button>
@@ -35,7 +36,7 @@ export const NavigationBar = ({ currentScreen, onScreenChange }: NavigationBarPr
           onClick={() => onScreenChange('recommendations')}
         >
           <div className="text-center">
-            <div className="text-lg mb-1">💡</div>
+            <Lightbulb className="w-5 h-5 mb-1 mx-auto" />
             <div className="text-xs">Советы</div>
           </div>
         </Button>
@@ -50,7 +51,7 @@ export const NavigationBar = ({ currentScreen, onScreenChange }: NavigationBarPr
           onClick={() => onScreenChange('history')}
         >
           <div className="text-center">
-            <div className="text-lg mb-1">📊</div>
+            <BarChart3 className="w-5 h-5 mb-1 mx-auto" />
             <div className="text-xs">История</div>
           </div>
         </Button>
@@ -65,7 +66,7 @@ export const NavigationBar = ({ currentScreen, onScreenChange }: NavigationBarPr
           onClick={() => onScreenChange('profile')}
         >
           <div className="text-center">
-            <div className="text-lg mb-1">👤</div>
+            <User className="w-5 h-5 mb-1 mx-auto" />
             <div className="text-xs">Профиль</div>
           </div>
         </Button>
