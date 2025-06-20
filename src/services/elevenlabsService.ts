@@ -2,17 +2,20 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export const elevenlabsService = {
-  async trackUsage(userId: string, sessionId: string, charactersCount: number) {
+  async trackUsage(userId: string, sessionId: string, charactersCount: number, conversationId?: string) {
     // Примерная стоимость ElevenLabs: $0.00011 за символ
     const costPerCharacter = 0.00011;
     const cost = charactersCount * costPerCharacter;
 
     try {
+      console.log('Tracking ElevenLabs usage:', { userId, sessionId, charactersCount, cost, conversationId });
+      
       const { error } = await supabase
         .from('elevenlabs_usage')
         .insert({
           user_id: userId,
           session_id: sessionId,
+          conversation_id: conversationId || null,
           characters_count: charactersCount,
           cost: cost
         });
@@ -21,6 +24,8 @@ export const elevenlabsService = {
         console.error('Error tracking ElevenLabs usage:', error);
         return;
       }
+
+      console.log('ElevenLabs usage tracked successfully');
 
       // Обновляем общие расходы пользователя
       const { data: profile } = await supabase
@@ -37,6 +42,13 @@ export const elevenlabsService = {
             elevenlabs_usage_count: (profile.elevenlabs_usage_count || 0) + 1
           })
           .eq('id', userId);
+        
+        console.log('User profile updated with new spending:', {
+          previousSpent: profile.total_spent,
+          newSpent: (profile.total_spent || 0) + cost,
+          previousUsageCount: profile.elevenlabs_usage_count,
+          newUsageCount: (profile.elevenlabs_usage_count || 0) + 1
+        });
       }
     } catch (error) {
       console.error('Error in trackUsage:', error);

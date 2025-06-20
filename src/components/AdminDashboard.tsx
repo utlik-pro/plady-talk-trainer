@@ -7,20 +7,7 @@ import { ElevenLabsUsageTable } from './admin/ElevenLabsUsageTable';
 import { UsersTable } from './admin/UsersTable';
 import { UserDetailView } from './admin/UserDetailView';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  is_banned: boolean;
-  subscription_expires_at: string | null;
-  total_spent: number;
-  elevenlabs_usage_count: number;
-  registration_date: string;
-  total_sessions: number;
-  total_conversations: number;
-  last_activity: string | null;
-}
+import { User } from '@/types/user';
 
 export const AdminDashboard = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);

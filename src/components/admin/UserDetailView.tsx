@@ -1,19 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  is_banned: boolean;
-  subscription_expires_at: string | null;
-  total_spent: number;
-  elevenlabs_usage_count: number;
-  registration_date: string;
-  total_sessions: number;
-  total_conversations: number;
-  last_activity: string | null;
-}
+import { User } from '@/types/user';
 
 interface UserDetailViewProps {
   user: User;
@@ -32,6 +19,10 @@ export const UserDetailView = ({
   onUpdateRole, 
   onToggleBan 
 }: UserDetailViewProps) => {
+  const averageMessagesPerSession = user.total_sessions > 0 
+    ? Math.round(user.total_conversations / user.total_sessions) 
+    : 0;
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
@@ -83,7 +74,7 @@ export const UserDetailView = ({
               </div>
               <div>
                 <label className="font-medium text-gray-700">ElevenLabs использований:</label>
-                <p className="text-lg">{user.elevenlabs_usage_count || 0}</p>
+                <p className="text-lg font-semibold text-purple-600">{user.elevenlabs_usage_count || 0}</p>
               </div>
               <div>
                 <label className="font-medium text-gray-700">Последняя активность:</label>
@@ -103,20 +94,45 @@ export const UserDetailView = ({
           {/* Статистика активности */}
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
             <h2 className="text-lg font-semibold mb-4">Статистика активности</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{user.total_sessions}</div>
                 <div className="text-sm text-gray-600">Всего сессий</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">{user.total_conversations}</div>
-                <div className="text-sm text-gray-600">Всего разговоров</div>
+                <div className="text-sm text-gray-600">Всего сообщений</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {user.total_sessions > 0 ? Math.round(user.total_conversations / user.total_sessions) : 0}
-                </div>
+                <div className="text-2xl font-bold text-purple-600">{averageMessagesPerSession}</div>
                 <div className="text-sm text-gray-600">Среднее сообщений/сессия</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">{user.elevenlabs_usage_count}</div>
+                <div className="text-sm text-gray-600">Голосовых сессий</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Финансовая статистика */}
+          <div className="bg-red-50 p-4 rounded-lg mb-6">
+            <h2 className="text-lg font-semibold mb-4 text-red-800">Финансовая статистика</h2>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">${user.total_spent?.toFixed(4) || '0.0000'}</div>
+                <div className="text-sm text-gray-600">Общие затраты</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">
+                  ${user.total_spent && user.elevenlabs_usage_count ? (user.total_spent / user.elevenlabs_usage_count).toFixed(4) : '0.0000'}
+                </div>
+                <div className="text-sm text-gray-600">Средняя стоимость/сессия</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {user.total_conversations && user.total_spent ? Math.round(user.total_conversations / (user.total_spent * 10000)) : 0}
+                </div>
+                <div className="text-sm text-gray-600">Сообщений на $0.01</div>
               </div>
             </div>
           </div>

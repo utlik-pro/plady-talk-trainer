@@ -23,32 +23,41 @@ export const useVoiceChat = () => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [totalCharacters, setTotalCharacters] = useState<number>(0);
   
   const conversation = useConversation({
     onConnect: () => {
       console.log('Connected to ElevenLabs conversation');
+      setTotalCharacters(0); // Сбрасываем счетчик символов при новом подключении
     },
     onDisconnect: async () => {
       console.log('Disconnected from ElevenLabs conversation');
       
-      // Получаем метаданные разговора и отслеживаем использование
-      if (conversationId && user && currentSessionId) {
-        const metadata = await elevenlabsService.getConversationMetadata(conversationId, apiKey);
-        if (metadata) {
-          await elevenlabsService.trackUsage(
-            user.id, 
-            currentSessionId, 
-            metadata.charactersCount
-          );
-          console.log('ElevenLabs usage tracked:', metadata);
-        }
+      // Отслеживаем использование при отключении
+      if (conversationId && user && currentSessionId && totalCharacters > 0) {
+        console.log('Tracking ElevenLabs usage on disconnect:', {
+          conversationId,
+          userId: user.id,
+          sessionId: currentSessionId,
+          totalCharacters
+        });
+        
+        await elevenlabsService.trackUsage(
+          user.id, 
+          currentSessionId, 
+          totalCharacters,
+          conversationId
+        );
       }
     },
     onMessage: (message) => {
       console.log('Received message:', message);
       
+      // Подсчитываем символы для отслеживания затрат
+      const messageLength = message.message?.length || 0;
+      setTotalCharacters(prev => prev + messageLength);
+      
       // Handle messages based on the actual structure from ElevenLabs
-      // The message object has: { message: string, source: Role }
       if (message.source === 'user') {
         const newMessage: ConversationMessage = {
           text: message.message,
@@ -110,8 +119,9 @@ export const useVoiceChat = () => {
       const { signed_url } = await response.json();
       console.log('Got signed URL, starting session...');
       
-      // Очищаем предыдущие сообщения
+      // Очищаем предыдущие сообщения и счетчик символов
       setMessages([]);
+      setTotalCharacters(0);
       
       const conversationId = await conversation.startSession({
         signedUrl: signed_url
@@ -148,6 +158,9 @@ export const useVoiceChat = () => {
     configure,
     startListening,
     stopListening,
-    clearMessages: () => setMessages([])
+    clearMessages: () => {
+      setMessages([]);
+      setTotalCharacters(0);
+    }
   };
 };

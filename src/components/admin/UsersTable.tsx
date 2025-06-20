@@ -1,16 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  is_banned: boolean;
-  subscription_expires_at: string | null;
-  total_spent: number;
-  elevenlabs_usage_count: number;
-  registration_date: string;
-}
+import { User } from '@/types/user';
 
 interface UsersTableProps {
   users: User[];
@@ -36,6 +26,8 @@ export const UsersTable = ({ users, loading, formatDate, onUserSelect }: UsersTa
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тариф</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Сессий</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Сообщений</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Потрачено</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Регистрация</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Действия</th>
@@ -66,7 +58,13 @@ export const UsersTable = ({ users, loading, formatDate, onUserSelect }: UsersTa
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${user.total_spent?.toFixed(4) || '0.0000'}
+                    <span className="font-semibold text-blue-600">{user.total_sessions}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <span className="font-semibold text-green-600">{user.total_conversations}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <span className="font-semibold text-red-600">${user.total_spent?.toFixed(4) || '0.0000'}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(user.registration_date)}

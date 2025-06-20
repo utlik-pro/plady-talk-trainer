@@ -3,20 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { revenueService } from '@/services/revenueService';
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  is_banned: boolean;
-  subscription_expires_at: string | null;
-  total_spent: number;
-  elevenlabs_usage_count: number;
-  registration_date: string;
-  total_sessions: number;
-  total_conversations: number;
-  last_activity: string | null;
-}
+import { User } from '@/types/user';
 
 interface UserStats {
   totalUsers: number;
@@ -103,11 +90,21 @@ export const useAdminDashboard = () => {
             .select('*', { count: 'exact', head: true })
             .eq('user_id', profile.id);
 
-          // Количество сообщений
-          const { count: messagesCount } = await supabase
-            .from('conversation_messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('session_id', profile.id);
+          // Количество сообщений - исправляем запрос
+          const { data: userSessions } = await supabase
+            .from('conversation_sessions')
+            .select('id')
+            .eq('user_id', profile.id);
+
+          let messagesCount = 0;
+          if (userSessions && userSessions.length > 0) {
+            const sessionIds = userSessions.map(session => session.id);
+            const { count } = await supabase
+              .from('conversation_messages')
+              .select('*', { count: 'exact', head: true })
+              .in('session_id', sessionIds);
+            messagesCount = count || 0;
+          }
 
           // Последняя активность
           const { data: lastSession } = await supabase
@@ -121,7 +118,7 @@ export const useAdminDashboard = () => {
           return {
             ...profile,
             total_sessions: sessionsCount || 0,
-            total_conversations: messagesCount || 0,
+            total_conversations: messagesCount,
             last_activity: lastSession?.created_at || null
           };
         })
@@ -136,16 +133,15 @@ export const useAdminDashboard = () => {
         (!user.subscription_expires_at || new Date(user.subscription_expires_at) > new Date())
       ).length;
 
-      const { count: messageCount } = await supabase
-        .from('conversation_messages')
-        .select('*', { count: 'exact', head: true });
+      // Получаем общее количество сообщений
+      const totalMessages = usersWithStats.reduce((sum, user) => sum + user.total_conversations, 0);
 
       const totalRevenue = await revenueService.getTotalRevenue();
       const netProfit = totalRevenue - totalSpent;
 
       setStats({
         totalUsers,
-        totalMessages: messageCount || 0,
+        totalMessages,
         totalSpent,
         activeSubscriptions,
         totalRevenue,
@@ -154,6 +150,7 @@ export const useAdminDashboard = () => {
 
       console.log('Stats calculated:', {
         totalUsers,
+        totalMessages,
         totalSpent,
         totalRevenue,
         netProfit
