@@ -9,7 +9,151 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      conversation_analysis: {
+        Row: {
+          areas_for_improvement: string[] | null
+          conversation_flow: string | null
+          created_at: string | null
+          detailed_feedback: string | null
+          id: string
+          overall_score: number | null
+          recommendations: string[] | null
+          session_id: string
+          strengths: string[] | null
+        }
+        Insert: {
+          areas_for_improvement?: string[] | null
+          conversation_flow?: string | null
+          created_at?: string | null
+          detailed_feedback?: string | null
+          id?: string
+          overall_score?: number | null
+          recommendations?: string[] | null
+          session_id: string
+          strengths?: string[] | null
+        }
+        Update: {
+          areas_for_improvement?: string[] | null
+          conversation_flow?: string | null
+          created_at?: string | null
+          detailed_feedback?: string | null
+          id?: string
+          overall_score?: number | null
+          recommendations?: string[] | null
+          session_id?: string
+          strengths?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_analysis_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          message_text: string
+          sender: string
+          session_id: string
+          timestamp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message_text: string
+          sender: string
+          session_id: string
+          timestamp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message_text?: string
+          sender?: string
+          session_id?: string
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_sessions: {
+        Row: {
+          character_avatar: string
+          character_name: string
+          character_personality: string
+          created_at: string | null
+          duration_seconds: number | null
+          end_time: string | null
+          id: string
+          start_time: string | null
+          total_messages: number | null
+          user_id: string
+        }
+        Insert: {
+          character_avatar: string
+          character_name: string
+          character_personality: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          start_time?: string | null
+          total_messages?: number | null
+          user_id: string
+        }
+        Update: {
+          character_avatar?: string
+          character_name?: string
+          character_personality?: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          start_time?: string | null
+          total_messages?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          registration_date: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id: string
+          registration_date?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          registration_date?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

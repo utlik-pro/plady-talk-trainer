@@ -8,20 +8,20 @@ interface ProfileScreenProps {
 }
 
 export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const { progress } = useProgress();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     onLogout();
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('ru-RU', {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
-    }).format(new Date(date));
+    }).format(new Date(dateString));
   };
 
   const formatTime = (seconds: number) => {
@@ -30,6 +30,16 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
     return `${hours}ч ${minutes}м`;
   };
 
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-plady-light to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg text-gray-600">Загрузка профиля...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
       {/* Header */}
@@ -37,7 +47,7 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
         <div className="text-center">
           <div className="text-4xl mb-2">👤</div>
           <h1 className="text-2xl font-bold">Профиль</h1>
-          <p className="text-sm opacity-90">{user?.email}</p>
+          <p className="text-sm opacity-90">{profile.email}</p>
         </div>
       </div>
 
@@ -69,19 +79,19 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
           <div className="flex items-center justify-between">
             <div>
               <div className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                user?.role === 'premium' 
+                profile.role === 'premium' 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-gray-100 text-gray-800'
               }`}>
-                {user?.role === 'premium' ? 'Premium' : 'Free'}
+                {profile.role === 'premium' ? 'Premium' : 'Free'}
               </div>
               <p className="text-sm text-gray-600 mt-1">
-                {user?.role === 'premium' 
+                {profile.role === 'premium' 
                   ? 'Все функции доступны' 
                   : 'Ограниченный доступ'}
               </p>
             </div>
-            {user?.role === 'free' && (
+            {profile.role === 'free' && (
               <Button 
                 size="sm"
                 className="bg-gradient-to-r from-plady-pink to-plady-purple text-white"
@@ -98,20 +108,20 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Email:</span>
-              <span className="font-medium">{user?.email}</span>
+              <span className="font-medium">{profile.email}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Дата регистрации:</span>
               <span className="font-medium">
-                {user?.registrationDate && formatDate(user.registrationDate)}
+                {formatDate(profile.registration_date)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Статус:</span>
               <span className={`font-medium ${
-                user?.role === 'premium' ? 'text-green-600' : 'text-gray-600'
+                profile.role === 'premium' ? 'text-green-600' : 'text-gray-600'
               }`}>
-                {user?.role === 'premium' ? 'Премиум пользователь' : 'Бесплатный аккаунт'}
+                {profile.role === 'premium' ? 'Премиум пользователь' : 'Бесплатный аккаунт'}
               </span>
             </div>
           </div>

@@ -1,10 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProgress } from '@/hooks/useProgress';
 import { useVoiceChat } from '@/hooks/useVoiceChat';
 import { useTrainerTimer } from '@/hooks/useTrainerTimer';
 import { useConversationMessages } from '@/hooks/useConversationMessages';
+import { useConversationHistory } from '@/hooks/useConversationHistory';
 import { toast } from '@/hooks/use-toast';
 import { TrainerHeader } from './TrainerHeader';
 import { TrainerContent } from './TrainerContent';
@@ -28,22 +29,43 @@ const character: Character = {
 };
 
 export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScreenProps) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { incrementTrainingTime } = useProgress();
   const voiceChat = useVoiceChat();
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const { createSession, endSession } = useConversationHistory();
 
   const { timeSpent, resetTimer } = useTrainerTimer({
-    userRole: user?.role || 'free',
+    userRole: profile?.role || 'free',
     onPaywallReached,
     onTimeIncrement: incrementTrainingTime
   });
 
-  const { conversationMessages, resetMessages } = useConversationMessages();
+  const { conversationMessages, currentSessionId, startNewSession, resetMessages } = useConversationMessages();
 
-  const handleEndConversation = () => {
+  const handleStartConversation = async () => {
+    if (!user) return;
+    
+    // Create new session in database
+    const sessionId = await createSession(character);
+    if (sessionId) {
+      startNewSession(sessionId);
+      voiceChat.startListening();
+    } else {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось начать разговор",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEndConversation = async () => {
     voiceChat.stopListening();
-    if (conversationMessages.length > 0) {
+    
+    if (conversationMessages.length > 0 && currentSessionId) {
+      // End session in database
+      await endSession(currentSessionId, timeSpent);
       setShowAnalysis(true);
     } else {
       toast({
@@ -60,6 +82,12 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
     resetTimer();
   };
 
+  // Override voice chat start listening to use our session management
+  const originalStartListening = voiceChat.startListening;
+  useEffect(() => {
+    voiceChat.startListening = handleStartConversation;
+  }, []);
+
   if (showAnalysis) {
     return (
       <ConversationAnalysis
@@ -75,7 +103,7 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
       <TrainerHeader
         character={character}
         isListening={voiceChat.isListening}
-        userRole={user?.role || 'free'}
+        userRole={profile?.role || 'free'}
         onEndConversation={handleEndConversation}
         onProfileClick={onProfileClick}
       />
@@ -86,8 +114,8 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
         isSpeaking={voiceChat.isSpeaking}
         conversationMessagesCount={conversationMessages.length}
         timeSpent={timeSpent}
-        userRole={user?.role || 'free'}
-        onStartListening={voiceChat.startListening}
+        userRole={profile?.role || 'free'}
+        onStartListening={handleStartConversation}
         onStopListening={voiceChat.stopListening}
       />
     </div>

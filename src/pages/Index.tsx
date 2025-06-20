@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 type AppScreen = 'onboarding' | 'auth' | 'trainer' | 'paywall' | 'profile' | 'recommendations' | 'history';
 
 const Index = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, profile, loading } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('onboarding');
   const [mainScreen, setMainScreen] = useState<'trainer' | 'profile' | 'recommendations' | 'history'>('trainer');
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
@@ -31,6 +31,20 @@ const Index = () => {
     }
   }, [isAuthenticated]);
 
+  // Show loading while auth is initializing
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-plady-light to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl font-bold bg-gradient-to-r from-plady-pink to-plady-purple bg-clip-text text-transparent mb-2">
+            Plady
+          </div>
+          <div className="text-gray-600">Загрузка...</div>
+        </div>
+      </div>
+    );
+  }
+
   const handleOnboardingComplete = () => {
     localStorage.setItem('plady_onboarding_seen', 'true');
     setHasSeenOnboarding(true);
@@ -46,9 +60,9 @@ const Index = () => {
   };
 
   const handleSubscribe = () => {
-    // Mock subscription upgrade
-    if (user) {
-      user.role = 'premium';
+    // Mock subscription upgrade - in real app would integrate with payment system
+    if (profile) {
+      // This would be handled by backend/payment system
     }
     setCurrentScreen('trainer');
   };
