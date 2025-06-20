@@ -151,25 +151,31 @@ export type Database = {
       elevenlabs_usage: {
         Row: {
           characters_count: number
+          conversation_id: string | null
           cost: number
           created_at: string
           id: string
+          metadata: Json | null
           session_id: string | null
           user_id: string
         }
         Insert: {
           characters_count?: number
+          conversation_id?: string | null
           cost?: number
           created_at?: string
           id?: string
+          metadata?: Json | null
           session_id?: string | null
           user_id: string
         }
         Update: {
           characters_count?: number
+          conversation_id?: string | null
           cost?: number
           created_at?: string
           id?: string
+          metadata?: Json | null
           session_id?: string | null
           user_id?: string
         }
@@ -226,6 +232,39 @@ export type Database = {
           subscription_expires_at?: string | null
           total_spent?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscription_revenue: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          payment_date: string
+          payment_method: string | null
+          subscription_type: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_date?: string
+          payment_method?: string | null
+          subscription_type?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_date?: string
+          payment_method?: string | null
+          subscription_type?: string
+          transaction_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }

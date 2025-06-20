@@ -1,8 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { elevenlabsService } from '@/services/elevenlabsService';
+import { revenueService } from '@/services/revenueService';
 
 interface User {
   id: string;
@@ -20,18 +21,52 @@ interface UserStats {
   totalMessages: number;
   totalSpent: number;
   activeSubscriptions: number;
+  totalRevenue: number;
+  netProfit: number;
+}
+
+interface ElevenLabsUsage {
+  id: string;
+  user_id: string;
+  characters_count: number;
+  cost: number;
+  created_at: string;
+  session_id: string | null;
+  conversation_id: string | null;
+  metadata: any;
 }
 
 export const AdminDashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [elevenLabsUsage, setElevenLabsUsage] = useState<ElevenLabsUsage[]>([]);
   const [stats, setStats] = useState<UserStats>({
     totalUsers: 0,
     totalMessages: 0,
     totalSpent: 0,
-    activeSubscriptions: 0
+    activeSubscriptions: 0,
+    totalRevenue: 0,
+    netProfit: 0
   });
   const [loading, setLoading] = useState(false);
+
+  const fetchElevenLabsUsage = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('elevenlabs_usage')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching ElevenLabs usage:', error);
+        return;
+      }
+
+      setElevenLabsUsage(data || []);
+    } catch (error) {
+      console.error('Error in fetchElevenLabsUsage:', error);
+    }
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -61,11 +96,19 @@ export const AdminDashboard = () => {
         .from('conversation_messages')
         .select('*', { count: 'exact', head: true });
 
+      // Получаем общую выручку
+      const totalRevenue = await revenueService.getTotalRevenue();
+
+      // Рассчитываем чистую прибыль (выручка - затраты на ElevenLabs)
+      const netProfit = totalRevenue - totalSpent;
+
       setStats({
         totalUsers,
         totalMessages: messageCount || 0,
         totalSpent,
-        activeSubscriptions
+        activeSubscriptions,
+        totalRevenue,
+        netProfit
       });
     } catch (error) {
       console.error('Error in fetchUsers:', error);
@@ -94,6 +137,11 @@ export const AdminDashboard = () => {
           variant: "destructive"
         });
         return;
+      }
+
+      // Если пользователь получил премиум, добавляем запись о доходе (для примера)
+      if (newRole === 'premium') {
+        await revenueService.addSubscriptionRevenue(userId, 9.99, 'premium', 'admin_upgrade');
       }
 
       toast({
@@ -142,6 +190,7 @@ export const AdminDashboard = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchElevenLabsUsage();
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -248,7 +297,25 @@ export const AdminDashboard = () => {
           </Button>
         </div>
 
-        {/* Статистика */}
+        {/* Финансовая статистика */}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="text-2xl font-bold text-green-600">${stats.totalRevenue.toFixed(2)}</div>
+            <div className="text-sm text-gray-600">Общая выручка</div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="text-2xl font-bold text-red-600">${stats.totalSpent.toFixed(4)}</div>
+            <div className="text-sm text-gray-600">Затраты ElevenLabs</div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className={`text-2xl font-bold ${stats.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              ${stats.netProfit.toFixed(2)}
+            </div>
+            <div className="text-sm text-gray-600">Чистая прибыль</div>
+          </div>
+        </div>
+
+        {/* Основная статистика */}
         <div className="grid grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="text-2xl font-bold text-blue-600">{stats.totalUsers}</div>
@@ -259,12 +326,53 @@ export const AdminDashboard = () => {
             <div className="text-sm text-gray-600">Всего сообщений</div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="text-2xl font-bold text-purple-600">${stats.totalSpent.toFixed(4)}</div>
-            <div className="text-sm text-gray-600">Общие затраты ElevenLabs</div>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="text-2xl font-bold text-orange-600">{stats.activeSubscriptions}</div>
             <div className="text-sm text-gray-600">Активные подписки</div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="text-2xl font-bold text-purple-600">{elevenLabsUsage.length}</div>
+            <div className="text-sm text-gray-600">ElevenLabs сессий</div>
+          </div>
+        </div>
+
+        {/* ElevenLabs Usage Details */}
+        <div className="bg-white rounded-xl shadow-sm mb-8">
+          <div className="p-6 border-b">
+            <h2 className="text-xl font-semibold">Детали использования ElevenLabs</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Дата</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Пользователь</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Символы</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Стоимость</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Сессия</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {elevenLabsUsage.slice(0, 10).map((usage) => (
+                  <tr key={usage.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatDate(usage.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {usage.user_id.substring(0, 8)}...
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {usage.characters_count}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      ${usage.cost.toFixed(4)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {usage.session_id ? usage.session_id.substring(0, 8) + '...' : 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
