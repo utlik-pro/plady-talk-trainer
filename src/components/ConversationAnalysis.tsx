@@ -64,7 +64,7 @@ ${conversationText}
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer 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`,
+          'Authorization': 'Bearer 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',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -124,9 +124,6 @@ ${conversationText}
         <div className="text-center space-y-4">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-plady-purple" />
           <p className="text-gray-600">Анализирую ваш разговор...</p>
-          {sessionId && (
-            <p className="text-xs text-gray-500">Session ID: {sessionId}</p>
-          )}
         </div>
       </div>
     );
@@ -139,9 +136,6 @@ ${conversationText}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Анализ разговора</h1>
           <p className="text-gray-600">с {character.name} {character.avatar}</p>
-          {sessionId && (
-            <p className="text-xs text-gray-500 mt-1">Session: {sessionId}</p>
-          )}
         </div>
 
         {analysis && (

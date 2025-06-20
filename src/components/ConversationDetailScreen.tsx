@@ -2,34 +2,36 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, MessageSquare, Clock, Play, Pause, Loader2, BarChart3 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import type { ConversationSession, ConversationMessage } from '@/types/conversation';
+import { ArrowLeft, Play, Pause, Loader2, MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { conversationService } from '@/services/conversationService';
+import { ConversationAnalysis } from './ConversationAnalysis';
+import type { ConversationSession, ConversationMessage, Character } from '@/types/conversation';
 
 interface ConversationDetailScreenProps {
   session: ConversationSession;
   onBack: () => void;
-  onAnalyze: (messages: ConversationMessage[], session: ConversationSession) => void;
 }
 
-export const ConversationDetailScreen = ({ session, onBack, onAnalyze }: ConversationDetailScreenProps) => {
+export const ConversationDetailScreen = ({ session, onBack }: ConversationDetailScreenProps) => {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [audioLoading, setAudioLoading] = useState<string | null>(null);
-  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [session.id]);
 
   const fetchMessages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('conversation_messages')
-        .select('*')
-        .eq('session_id', session.id)
-        .order('timestamp', { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
+      const messagesData = await conversationService.fetchMessages(session.id);
+      // Приводим типы к нужному формату
+      const formattedMessages: ConversationMessage[] = messagesData.map(msg => ({
+        ...msg,
+        sender: msg.sender as 'user' | 'character'
+      }));
+      setMessages(formattedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -42,230 +44,171 @@ export const ConversationDetailScreen = ({ session, onBack, onAnalyze }: Convers
     }
   };
 
-  const generateAudioForMessage = async (messageText: string, messageId: string) => {
-    setAudioLoading(messageId);
-    
+  const playAudio = async (text: string, messageId: string) => {
+    if (playingMessageId === messageId) {
+      setPlayingMessageId(null);
+      return;
+    }
+
+    setPlayingMessageId(messageId);
+
     try {
       const response = await fetch('https://api.openai.com/v1/audio/speech', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer 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`,
+          'Authorization': 'Bearer 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',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           model: 'tts-1',
-          input: messageText,
           voice: 'nova',
-          response_format: 'mp3',
+          input: text,
+          response_format: 'mp3'
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка генерации аудио');
+        throw new Error('Failed to generate audio');
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(blob);
-      
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
-      setCurrentAudio(audio);
-      setPlayingMessageId(messageId);
       
       audio.onended = () => {
         setPlayingMessageId(null);
-        setCurrentAudio(null);
         URL.revokeObjectURL(audioUrl);
       };
       
       await audio.play();
     } catch (error) {
-      console.error('Error generating audio:', error);
+      console.error('Error playing audio:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось сгенерировать аудио",
+        description: "Не удалось воспроизвести аудио",
         variant: "destructive"
       });
-    } finally {
-      setAudioLoading(null);
-    }
-  };
-
-  const stopAudio = () => {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      setCurrentAudio(null);
       setPlayingMessageId(null);
     }
   };
 
-  const formatTime = (dateString: string) => {
-    return new Intl.DateTimeFormat('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(dateString));
+  const handleAnalyze = () => {
+    setShowAnalysis(true);
   };
 
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const character: Character = {
+    name: session.character_name,
+    avatar: session.character_avatar || "👩‍🦰",
+    personality: session.character_personality || "Дружелюбная и общительная"
   };
 
-  useEffect(() => {
-    fetchMessages();
-    
-    return () => {
-      if (currentAudio) {
-        currentAudio.pause();
-        setCurrentAudio(null);
-      }
-    };
-  }, [session.id]);
+  if (showAnalysis) {
+    return (
+      <ConversationAnalysis
+        messages={messages}
+        character={character}
+        sessionId={session.id}
+        onStartNew={() => setShowAnalysis(false)}
+      />
+    );
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-plady-light to-white flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-plady-purple mb-4" />
-          <p className="text-gray-600">Загрузка разговора...</p>
-        </div>
+        <Loader2 className="w-8 h-8 animate-spin text-plady-purple" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-plady-pink to-plady-purple p-6 text-white">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Назад
+      <div className="max-w-4xl mx-auto p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <Button variant="ghost" onClick={onBack} className="flex items-center space-x-2">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Назад к истории</span>
+          </Button>
+          <Button onClick={handleAnalyze} className="bg-gradient-to-r from-plady-pink to-plady-purple">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Анализ разговора
           </Button>
         </div>
-        <div className="text-center mt-4">
-          <div className="text-4xl mb-2">{session.character_avatar}</div>
-          <h1 className="text-2xl font-bold">Разговор с {session.character_name}</h1>
-          <p className="text-sm opacity-90">
-            {new Intl.DateTimeFormat('ru-RU', {
-              day: 'numeric',
-              month: 'long',
-              hour: '2-digit',
-              minute: '2-digit'
-            }).format(new Date(session.start_time))}
-          </p>
-        </div>
-      </div>
 
-      {/* Session Info */}
-      <div className="p-6">
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <Clock className="w-5 h-5 mx-auto text-gray-400 mb-2" />
-            <div className="text-lg font-semibold text-gray-700">
-              {formatDuration(session.duration_seconds)}
-            </div>
-            <div className="text-xs text-gray-500">Длительность</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <MessageSquare className="w-5 h-5 mx-auto text-gray-400 mb-2" />
-            <div className="text-lg font-semibold text-gray-700">
-              {session.total_messages}
-            </div>
-            <div className="text-xs text-gray-500">Сообщений</div>
-          </div>
-
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <BarChart3 className="w-5 h-5 mx-auto text-gray-400 mb-2" />
-            <div className="text-lg font-semibold text-gray-700">
-              {session.analysis?.overall_score || 'N/A'}
-            </div>
-            <div className="text-xs text-gray-500">Балл</div>
-          </div>
-        </div>
-
-        {/* Analyze Button */}
-        {!session.analysis && (
-          <div className="mb-6">
-            <Button
-              onClick={() => onAnalyze(messages, session)}
-              className="w-full bg-gradient-to-r from-plady-pink to-plady-purple"
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Сделать анализ и получить рекомендации
-            </Button>
-          </div>
-        )}
-
-        {/* Messages */}
-        <Card>
+        {/* Session Info */}
+        <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <MessageSquare className="w-5 h-5 mr-2" />
-              История сообщений
+            <CardTitle className="flex items-center space-x-2">
+              <span>{character.avatar}</span>
+              <span>Разговор с {character.name}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                      message.sender === 'user'
-                        ? 'bg-plady-purple text-white'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium">
-                        {message.sender === 'user' ? 'Вы' : session.character_name}
-                      </p>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs opacity-70">
-                          {formatTime(message.timestamp)}
-                        </span>
-                        {message.sender === 'character' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => {
-                              if (playingMessageId === message.id) {
-                                stopAudio();
-                              } else {
-                                generateAudioForMessage(message.message_text, message.id);
-                              }
-                            }}
-                            disabled={audioLoading === message.id}
-                          >
-                            {audioLoading === message.id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : playingMessageId === message.id ? (
-                              <Pause className="h-3 w-3" />
-                            ) : (
-                              <Play className="h-3 w-3" />
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-sm">{message.message_text}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600">Дата:</span>
+                <br />
+                <span className="font-medium">
+                  {new Date(session.created_at).toLocaleDateString('ru-RU')}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Длительность:</span>
+                <br />
+                <span className="font-medium">
+                  {Math.floor((session.duration_seconds || 0) / 60)}:{String((session.duration_seconds || 0) % 60).padStart(2, '0')}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600">Сообщений:</span>
+                <br />
+                <span className="font-medium">{messages.length}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Messages */}
+        <div className="space-y-4">
+          {messages.map((message) => (
+            <Card key={message.id} className={`${message.sender === 'user' ? 'ml-12' : 'mr-12'}`}>
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="text-2xl">
+                    {message.sender === 'user' ? '👤' : character.avatar}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm">
+                        {message.sender === 'user' ? 'Вы' : character.name}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(message.timestamp).toLocaleTimeString('ru-RU')}
+                      </span>
+                    </div>
+                    <p className="text-gray-700 mb-2">{message.message_text}</p>
+                    
+                    {message.sender === 'character' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => playAudio(message.message_text, message.id)}
+                        className="h-8 px-2"
+                      >
+                        {playingMessageId === message.id ? (
+                          <Pause className="w-3 h-3" />
+                        ) : (
+                          <Play className="w-3 h-3" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
