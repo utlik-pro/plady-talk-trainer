@@ -195,7 +195,7 @@ export const AdminDashboard = () => {
               <div className="space-y-4">
                 <div>
                   <label className="font-medium text-gray-700">Потрачено:</label>
-                  <p className="text-lg">${selectedUser.total_spent?.toFixed(2) || '0.00'}</p>
+                  <p className="text-lg">${selectedUser.total_spent?.toFixed(4) || '0.0000'}</p>
                 </div>
                 <div>
                   <label className="font-medium text-gray-700">ElevenLabs использований:</label>
@@ -259,8 +259,8 @@ export const AdminDashboard = () => {
             <div className="text-sm text-gray-600">Всего сообщений</div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="text-2xl font-bold text-purple-600">${stats.totalSpent.toFixed(2)}</div>
-            <div className="text-sm text-gray-600">Общие затраты</div>
+            <div className="text-2xl font-bold text-purple-600">${stats.totalSpent.toFixed(4)}</div>
+            <div className="text-sm text-gray-600">Общие затраты ElevenLabs</div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="text-2xl font-bold text-orange-600">{stats.activeSubscriptions}</div>
@@ -314,7 +314,7 @@ export const AdminDashboard = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${user.total_spent?.toFixed(2) || '0.00'}
+                        ${user.total_spent?.toFixed(4) || '0.0000'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatDate(user.registration_date)}

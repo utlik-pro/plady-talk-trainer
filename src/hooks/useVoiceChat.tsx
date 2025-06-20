@@ -1,5 +1,8 @@
+
 import { useState, useCallback } from 'react';
 import { useConversation } from '@11labs/react';
+import { elevenlabsService } from '@/services/elevenlabsService';
+import { useAuth } from './useAuth';
 
 interface VoiceChatConfig {
   apiKey: string;
@@ -13,18 +16,33 @@ interface ConversationMessage {
 }
 
 export const useVoiceChat = () => {
+  const { user } = useAuth();
   const [apiKey, setApiKey] = useState<string>('sk_c6dfeb28d2cc4b3c7cac8b5324875cc07b9751bd7a3d4084');
   const [agentId, setAgentId] = useState<string>('agent_01jy6qz3rqed38msb7dhnwsv18');
   const [isConfigured, setIsConfigured] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   
   const conversation = useConversation({
     onConnect: () => {
       console.log('Connected to ElevenLabs conversation');
     },
-    onDisconnect: () => {
+    onDisconnect: async () => {
       console.log('Disconnected from ElevenLabs conversation');
+      
+      // Получаем метаданные разговора и отслеживаем использование
+      if (conversationId && user && currentSessionId) {
+        const metadata = await elevenlabsService.getConversationMetadata(conversationId, apiKey);
+        if (metadata) {
+          await elevenlabsService.trackUsage(
+            user.id, 
+            currentSessionId, 
+            metadata.charactersCount
+          );
+          console.log('ElevenLabs usage tracked:', metadata);
+        }
+      }
     },
     onMessage: (message) => {
       console.log('Received message:', message);
@@ -61,7 +79,7 @@ export const useVoiceChat = () => {
     console.log('Voice chat configured with API key');
   }, []);
 
-  const startListening = useCallback(async () => {
+  const startListening = useCallback(async (sessionId?: string) => {
     if (!apiKey) {
       console.error('ElevenLabs API key not configured');
       return null;
@@ -100,6 +118,7 @@ export const useVoiceChat = () => {
       });
       
       setConversationId(conversationId);
+      setCurrentSessionId(sessionId || null);
       console.log('Voice conversation started successfully, ID:', conversationId);
       
       return conversationId;

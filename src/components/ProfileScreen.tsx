@@ -138,10 +138,6 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
               <span className="text-gray-600">Всего сообщений:</span>
               <span className="font-medium">{stats.totalMessages}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Потрачено на ElevenLabs:</span>
-              <span className="font-medium">${(profile.total_spent || 0).toFixed(4)}</span>
-            </div>
           </div>
         </div>
 

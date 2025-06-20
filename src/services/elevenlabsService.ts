@@ -60,5 +60,37 @@ export const elevenlabsService = {
       console.error('Error in getUserTotalSpent:', error);
       return 0;
     }
+  },
+
+  // Функция для получения метаданных от ElevenLabs после разговора
+  async getConversationMetadata(conversationId: string, apiKey: string) {
+    try {
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/${conversationId}`,
+        {
+          method: 'GET',
+          headers: {
+            'xi-api-key': apiKey
+          }
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Failed to get conversation metadata:', response.status);
+        return null;
+      }
+
+      const metadata = await response.json();
+      console.log('ElevenLabs conversation metadata:', metadata);
+      
+      return {
+        duration: metadata.duration_seconds || 0,
+        cost: metadata.cost_breakdown?.total_cost || 0,
+        charactersCount: metadata.cost_breakdown?.character_count || 0
+      };
+    } catch (error) {
+      console.error('Error getting conversation metadata:', error);
+      return null;
+    }
   }
 };
