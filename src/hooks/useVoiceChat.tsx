@@ -58,8 +58,10 @@ export const useVoiceChat = () => {
 
       const { signed_url } = await response.json();
       
-      // Start the conversation
-      await conversation.startSession({ url: signed_url });
+      // Start the conversation with the correct parameter name
+      await conversation.startSession({
+        signedUrl: signed_url
+      });
     } catch (error) {
       console.error('Error starting conversation:', error);
     }
