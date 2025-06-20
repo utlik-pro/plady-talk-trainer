@@ -93,6 +93,72 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
           </div>
         </div>
 
+        {/* Achievements */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Достижения</h2>
+          <div className="space-y-3">
+            <div className={`flex items-center space-x-3 p-3 rounded-lg border ${stats.totalSessions >= 1 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 opacity-50'}`}>
+              <div className="text-2xl">🎯</div>
+              <div className="flex-1">
+                <div className="font-medium">Первые шаги</div>
+                <div className="text-sm text-gray-600">Завершите первую тренировку</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Прогресс: {Math.min(stats.totalSessions, 1)}/1
+                </div>
+              </div>
+              {stats.totalSessions >= 1 && <div className="text-green-500 text-xl">✓</div>}
+            </div>
+            
+            <div className={`flex items-center space-x-3 p-3 rounded-lg border ${stats.totalSessions >= 5 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 opacity-50'}`}>
+              <div className="text-2xl">💪</div>
+              <div className="flex-1">
+                <div className="font-medium">Постоянство</div>
+                <div className="text-sm text-gray-600">Завершите 5 тренировок</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Прогресс: {Math.min(stats.totalSessions, 5)}/5
+                </div>
+              </div>
+              {stats.totalSessions >= 5 && <div className="text-green-500 text-xl">✓</div>}
+            </div>
+            
+            <div className={`flex items-center space-x-3 p-3 rounded-lg border ${stats.totalSessions >= 10 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 opacity-50'}`}>
+              <div className="text-2xl">🏆</div>
+              <div className="flex-1">
+                <div className="font-medium">Мастер общения</div>
+                <div className="text-sm text-gray-600">Завершите 10 тренировок</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Прогресс: {Math.min(stats.totalSessions, 10)}/10
+                </div>
+              </div>
+              {stats.totalSessions >= 10 && <div className="text-green-500 text-xl">✓</div>}
+            </div>
+
+            <div className={`flex items-center space-x-3 p-3 rounded-lg border ${stats.totalMinutes >= 60 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 opacity-50'}`}>
+              <div className="text-2xl">⏰</div>
+              <div className="flex-1">
+                <div className="font-medium">Марафонец</div>
+                <div className="text-sm text-gray-600">Проведите 60 минут в тренировках</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Прогресс: {Math.min(stats.totalMinutes, 60)}/60 минут
+                </div>
+              </div>
+              {stats.totalMinutes >= 60 && <div className="text-green-500 text-xl">✓</div>}
+            </div>
+
+            <div className={`flex items-center space-x-3 p-3 rounded-lg border ${stats.totalMessages >= 50 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 opacity-50'}`}>
+              <div className="text-2xl">💬</div>
+              <div className="flex-1">
+                <div className="font-medium">Болтун</div>
+                <div className="text-sm text-gray-600">Отправьте 50 сообщений</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Прогресс: {Math.min(stats.totalMessages, 50)}/50 сообщений
+                </div>
+              </div>
+              {stats.totalMessages >= 50 && <div className="text-green-500 text-xl">✓</div>}
+            </div>
+          </div>
+        </div>
+
         {/* Recommendations List */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Персональные рекомендации</h2>

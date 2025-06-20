@@ -141,37 +141,6 @@ export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
           </div>
         </div>
 
-        {/* Achievements */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Достижения</h2>
-          <div className="space-y-3">
-            <div className={`flex items-center space-x-3 ${stats.totalSessions >= 1 ? '' : 'opacity-50'}`}>
-              <div className="text-2xl">🎯</div>
-              <div>
-                <div className="font-medium">Первые шаги</div>
-                <div className="text-sm text-gray-600">Завершил первую тренировку</div>
-              </div>
-              {stats.totalSessions >= 1 && <div className="text-green-500 text-sm">✓</div>}
-            </div>
-            <div className={`flex items-center space-x-3 ${stats.totalSessions >= 5 ? '' : 'opacity-50'}`}>
-              <div className="text-2xl">💪</div>
-              <div>
-                <div className="font-medium">Постоянство</div>
-                <div className="text-sm text-gray-600">5 тренировок завершено</div>
-              </div>
-              {stats.totalSessions >= 5 && <div className="text-green-500 text-sm">✓</div>}
-            </div>
-            <div className={`flex items-center space-x-3 ${stats.totalSessions >= 10 ? '' : 'opacity-50'}`}>
-              <div className="text-2xl">🏆</div>
-              <div>
-                <div className="font-medium">Мастер общения</div>
-                <div className="text-sm text-gray-600">10 тренировок завершено</div>
-              </div>
-              {stats.totalSessions >= 10 && <div className="text-green-500 text-sm">✓</div>}
-            </div>
-          </div>
-        </div>
-
         {/* Logout */}
         <Button
           onClick={handleLogout}

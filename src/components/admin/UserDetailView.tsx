@@ -10,6 +10,9 @@ interface User {
   total_spent: number;
   elevenlabs_usage_count: number;
   registration_date: string;
+  total_sessions: number;
+  total_conversations: number;
+  last_activity: string | null;
 }
 
 interface UserDetailViewProps {
@@ -44,6 +47,7 @@ export const UserDetailView = ({
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <h1 className="text-2xl font-bold mb-6">Пользователь: {user.email}</h1>
           
+          {/* Основная информация */}
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div className="space-y-4">
               <div>
@@ -66,24 +70,58 @@ export const UserDetailView = ({
                   {user.is_banned ? 'Заблокирован' : 'Активен'}
                 </p>
               </div>
+              <div>
+                <label className="font-medium text-gray-700">Дата регистрации:</label>
+                <p className="text-lg">{formatDate(user.registration_date)}</p>
+              </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="font-medium text-gray-700">Потрачено:</label>
-                <p className="text-lg">${user.total_spent?.toFixed(4) || '0.0000'}</p>
+                <label className="font-medium text-gray-700">Потрачено (ElevenLabs):</label>
+                <p className="text-lg text-red-600 font-semibold">${user.total_spent?.toFixed(4) || '0.0000'}</p>
               </div>
               <div>
                 <label className="font-medium text-gray-700">ElevenLabs использований:</label>
                 <p className="text-lg">{user.elevenlabs_usage_count || 0}</p>
               </div>
               <div>
-                <label className="font-medium text-gray-700">Дата регистрации:</label>
-                <p className="text-lg">{formatDate(user.registration_date)}</p>
+                <label className="font-medium text-gray-700">Последняя активность:</label>
+                <p className="text-lg">
+                  {user.last_activity ? formatDate(user.last_activity) : 'Нет данных'}
+                </p>
+              </div>
+              {user.subscription_expires_at && (
+                <div>
+                  <label className="font-medium text-gray-700">Подписка истекает:</label>
+                  <p className="text-lg">{formatDate(user.subscription_expires_at)}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Статистика активности */}
+          <div className="bg-gray-50 p-4 rounded-lg mb-6">
+            <h2 className="text-lg font-semibold mb-4">Статистика активности</h2>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{user.total_sessions}</div>
+                <div className="text-sm text-gray-600">Всего сессий</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{user.total_conversations}</div>
+                <div className="text-sm text-gray-600">Всего разговоров</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {user.total_sessions > 0 ? Math.round(user.total_conversations / user.total_sessions) : 0}
+                </div>
+                <div className="text-sm text-gray-600">Среднее сообщений/сессия</div>
               </div>
             </div>
           </div>
 
+          {/* Действия с пользователем */}
           <div className="space-y-4">
             <div className="flex gap-4">
               <Button
@@ -100,13 +138,6 @@ export const UserDetailView = ({
                 {user.is_banned ? 'Разблокировать' : 'Заблокировать'}
               </Button>
             </div>
-
-            {user.subscription_expires_at && (
-              <div>
-                <label className="font-medium text-gray-700">Подписка истекает:</label>
-                <p className="text-lg">{formatDate(user.subscription_expires_at)}</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

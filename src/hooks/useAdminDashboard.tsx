@@ -13,6 +13,9 @@ interface User {
   total_spent: number;
   elevenlabs_usage_count: number;
   registration_date: string;
+  total_sessions: number;
+  total_conversations: number;
+  last_activity: string | null;
 }
 
 interface UserStats {
@@ -50,6 +53,7 @@ export const useAdminDashboard = () => {
 
   const fetchElevenLabsUsage = async () => {
     try {
+      console.log('Fetching ElevenLabs usage...');
       const { data, error } = await supabase
         .from('elevenlabs_usage')
         .select('*')
@@ -57,9 +61,15 @@ export const useAdminDashboard = () => {
 
       if (error) {
         console.error('Error fetching ElevenLabs usage:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить данные ElevenLabs",
+          variant: "destructive"
+        });
         return;
       }
 
+      console.log('ElevenLabs usage data:', data);
       setElevenLabsUsage(data || []);
     } catch (error) {
       console.error('Error in fetchElevenLabsUsage:', error);
@@ -69,24 +79,62 @@ export const useAdminDashboard = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      console.log('Fetching users...');
+      
+      // Получаем пользователей с дополнительной информацией о сессиях
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('registration_date', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching users:', error);
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
         return;
       }
 
-      setUsers(data || []);
+      console.log('Profiles data:', profiles);
 
-      const totalUsers = data?.length || 0;
-      const totalSpent = data?.reduce((sum, user) => sum + (user.total_spent || 0), 0) || 0;
-      const activeSubscriptions = data?.filter(user => 
+      // Получаем статистику сессий для каждого пользователя
+      const usersWithStats = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          // Количество сессий
+          const { count: sessionsCount } = await supabase
+            .from('conversation_sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', profile.id);
+
+          // Количество сообщений
+          const { count: messagesCount } = await supabase
+            .from('conversation_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('session_id', profile.id);
+
+          // Последняя активность
+          const { data: lastSession } = await supabase
+            .from('conversation_sessions')
+            .select('created_at')
+            .eq('user_id', profile.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          return {
+            ...profile,
+            total_sessions: sessionsCount || 0,
+            total_conversations: messagesCount || 0,
+            last_activity: lastSession?.created_at || null
+          };
+        })
+      );
+
+      setUsers(usersWithStats);
+
+      const totalUsers = usersWithStats.length;
+      const totalSpent = usersWithStats.reduce((sum, user) => sum + (user.total_spent || 0), 0);
+      const activeSubscriptions = usersWithStats.filter(user => 
         user.role === 'premium' && 
         (!user.subscription_expires_at || new Date(user.subscription_expires_at) > new Date())
-      ).length || 0;
+      ).length;
 
       const { count: messageCount } = await supabase
         .from('conversation_messages')
@@ -103,8 +151,21 @@ export const useAdminDashboard = () => {
         totalRevenue,
         netProfit
       });
+
+      console.log('Stats calculated:', {
+        totalUsers,
+        totalSpent,
+        totalRevenue,
+        netProfit
+      });
+
     } catch (error) {
       console.error('Error in fetchUsers:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить данные пользователей",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
