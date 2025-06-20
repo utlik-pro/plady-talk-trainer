@@ -1,93 +1,86 @@
 
 import { useState, useCallback } from 'react';
+import { useConversation } from '@11labs/react';
 
 interface VoiceChatConfig {
   apiKey: string;
-  voiceId?: string;
-  model?: string;
+  agentId?: string;
 }
 
 export const useVoiceChat = () => {
-  const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [apiKey, setApiKey] = useState<string>('');
   const [isConfigured, setIsConfigured] = useState(false);
+  
+  const conversation = useConversation({
+    onConnect: () => {
+      console.log('Connected to ElevenLabs conversation');
+    },
+    onDisconnect: () => {
+      console.log('Disconnected from ElevenLabs conversation');
+    },
+    onMessage: (message) => {
+      console.log('Received message:', message);
+    },
+    onError: (error) => {
+      console.error('Conversation error:', error);
+    }
+  });
 
   const configure = useCallback((config: VoiceChatConfig) => {
     setApiKey(config.apiKey);
     setIsConfigured(!!config.apiKey);
   }, []);
 
-  const speak = useCallback(async (text: string) => {
+  const startListening = useCallback(async () => {
     if (!apiKey) {
       console.error('ElevenLabs API key not configured');
       return;
     }
 
-    setIsSpeaking(true);
-    
     try {
-      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/9BWtsMINqrJLrRacOk9x', {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': apiKey
-        },
-        body: JSON.stringify({
-          text: text,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5
+      // Request microphone access first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Generate signed URL for the agent
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=agent_01jy3m8mhpe3092q9cmsvzcwe8`,
+        {
+          method: 'GET',
+          headers: {
+            'xi-api-key': apiKey
           }
-        })
-      });
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to generate speech');
+        throw new Error('Failed to get signed URL');
       }
 
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
+      const { signed_url } = await response.json();
       
-      audio.onended = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-      
-      await audio.play();
+      // Start the conversation
+      await conversation.startSession({ url: signed_url });
     } catch (error) {
-      console.error('Error generating speech:', error);
-      setIsSpeaking(false);
+      console.error('Error starting conversation:', error);
     }
-  }, [apiKey]);
+  }, [apiKey, conversation]);
 
-  const startListening = useCallback(async () => {
+  const stopListening = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setIsListening(true);
-      
-      // Здесь можно добавить logic для распознавания речи
-      // Для MVP используем простую заглушку
-      setTimeout(() => {
-        setIsListening(false);
-        stream.getTracks().forEach(track => track.stop());
-      }, 3000);
-      
+      await conversation.endSession();
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      console.error('Error ending conversation:', error);
     }
-  }, []);
+  }, [conversation]);
 
-  const stopListening = useCallback(() => {
-    setIsListening(false);
+  const speak = useCallback(async (text: string) => {
+    // This method is no longer needed as the conversation handles TTS automatically
+    console.log('Text would be spoken:', text);
   }, []);
 
   return {
-    isListening,
-    isSpeaking,
+    isListening: conversation.status === 'connected',
+    isSpeaking: conversation.isSpeaking,
     isConfigured,
     configure,
     speak,

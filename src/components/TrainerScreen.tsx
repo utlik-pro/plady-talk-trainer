@@ -137,7 +137,7 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
   };
 
   const handleVoiceSetup = (apiKey: string) => {
-    voiceChat.configure({ apiKey });
+    voiceChat.configure({ apiKey, agentId: 'agent_01jy3m8mhpe3092q9cmsvzcwe8' });
     toast({
       title: "Голосовой чат настроен!",
       description: "Теперь вы можете общаться голосом с Анной"
@@ -150,6 +150,11 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
       return;
     }
     setIsVoiceMode(!isVoiceMode);
+    
+    // If switching to voice mode, clear chat history as we'll use live conversation
+    if (!isVoiceMode) {
+      setChatHistory([]);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -203,42 +208,60 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
         </div>
       </div>
 
-      {/* Scenario description */}
-      <div className="p-4 bg-plady-light border-b border-gray-100">
-        <p className="text-sm text-gray-700 italic">
-          📍 {scenario.situation}
-        </p>
-      </div>
+      {/* Scenario description - only show in text mode */}
+      {!isVoiceMode && (
+        <div className="p-4 bg-plady-light border-b border-gray-100">
+          <p className="text-sm text-gray-700 italic">
+            📍 {scenario.situation}
+          </p>
+        </div>
+      )}
 
-      {/* Chat area */}
-      <div className="flex-1 p-4 space-y-4 max-h-96 overflow-y-auto">
-        {chatHistory.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
-          >
+      {/* Voice mode description */}
+      {isVoiceMode && (
+        <div className="p-4 bg-plady-light border-b border-gray-100">
+          <p className="text-sm text-gray-700 italic">
+            🎤 Голосовой режим: Общайтесь с Анной естественно, как в реальной жизни
+          </p>
+        </div>
+      )}
+
+      {/* Chat area - only show in text mode */}
+      {!isVoiceMode && (
+        <div className="flex-1 p-4 space-y-4 max-h-96 overflow-y-auto">
+          {chatHistory.map((message, index) => (
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                message.sender === 'user'
-                  ? 'bg-gradient-to-r from-plady-pink to-plady-purple text-white'
-                  : 'bg-white shadow-sm border border-gray-100 text-gray-800'
-              }`}
+              key={index}
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
             >
-              {message.text}
+              <div
+                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                  message.sender === 'user'
+                    ? 'bg-gradient-to-r from-plady-pink to-plady-purple text-white'
+                    : 'bg-white shadow-sm border border-gray-100 text-gray-800'
+                }`}
+              >
+                {message.text}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Voice Interface */}
       {isVoiceMode && voiceChat.isConfigured && (
-        <div className="p-4">
-          <VoiceInterface
-            isListening={voiceChat.isListening}
-            isSpeaking={voiceChat.isSpeaking}
-            onStartListening={voiceChat.startListening}
-            onStopListening={voiceChat.stopListening}
-          />
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center space-y-6">
+            <div className="text-6xl mb-4">{character.avatar}</div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">{character.name}</h2>
+            <p className="text-gray-600 mb-6">{character.personality}</p>
+            <VoiceInterface
+              isListening={voiceChat.isListening}
+              isSpeaking={voiceChat.isSpeaking}
+              onStartListening={voiceChat.startListening}
+              onStopListening={voiceChat.stopListening}
+            />
+          </div>
         </div>
       )}
 

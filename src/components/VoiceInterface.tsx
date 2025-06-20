@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, Phone, PhoneOff } from 'lucide-react';
 
 interface VoiceInterfaceProps {
   isListening: boolean;
@@ -29,13 +29,13 @@ export const VoiceInterface = ({
           disabled={isSpeaking}
         >
           {isListening ? (
-            <MicOff className="w-6 h-6 text-white" />
+            <PhoneOff className="w-6 h-6 text-white" />
           ) : (
-            <Mic className="w-6 h-6 text-white" />
+            <Phone className="w-6 h-6 text-white" />
           )}
         </Button>
         <p className="text-sm text-gray-600 mt-2">
-          {isListening ? 'Говорите...' : 'Нажмите для записи'}
+          {isListening ? 'Разговор идёт...' : 'Начать разговор'}
         </p>
       </div>
       
@@ -43,6 +43,13 @@ export const VoiceInterface = ({
         <div className="flex items-center text-plady-purple">
           <Volume2 className="w-5 h-5 mr-2 animate-pulse" />
           <span className="text-sm">Анна говорит...</span>
+        </div>
+      )}
+      
+      {isListening && !isSpeaking && (
+        <div className="flex items-center text-green-600">
+          <Mic className="w-5 h-5 mr-2 animate-pulse" />
+          <span className="text-sm">Слушаю...</span>
         </div>
       )}
     </div>
