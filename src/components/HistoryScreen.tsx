@@ -210,25 +210,4 @@ export const HistoryScreen = ({ onBack }: HistoryScreenProps) => {
       </div>
     </div>
   );
-
-  function formatDate(date: Date) {
-    return new Intl.DateTimeFormat('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  }
-
-  function formatDuration(seconds: number) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
-
-  function getScoreColor(score: number) {
-    if (score >= 8) return 'text-green-600';
-    if (score >= 7) return 'text-yellow-600';
-    return 'text-red-600';
-  }
 };
