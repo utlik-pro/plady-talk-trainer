@@ -7,7 +7,6 @@ interface TrainerHeaderProps {
     avatar: string;
     personality: string;
   };
-  timeSpent: number;
   isListening: boolean;
   userRole: 'free' | 'premium';
   onEndConversation: () => void;
@@ -15,17 +14,10 @@ interface TrainerHeaderProps {
 
 export const TrainerHeader = ({ 
   character, 
-  timeSpent, 
   isListening, 
   userRole, 
   onEndConversation 
 }: TrainerHeaderProps) => {
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="bg-white shadow-sm border-b border-gray-100 p-4">
       <div className="flex items-center justify-between">
@@ -47,17 +39,6 @@ export const TrainerHeader = ({
               Завершить и получить анализ
             </Button>
           )}
-          <div className="text-right">
-            <div className="text-sm text-gray-500">Время разговора</div>
-            <div className="font-mono font-semibold text-plady-purple">
-              {formatTime(timeSpent)}
-            </div>
-            {userRole === 'free' && (
-              <div className="text-xs text-plady-pink">
-                Осталось: {formatTime(180 - timeSpent)}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>

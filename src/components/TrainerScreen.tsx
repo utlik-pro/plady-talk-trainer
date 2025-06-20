@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProgress } from '@/hooks/useProgress';
@@ -73,7 +72,6 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
     <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
       <TrainerHeader
         character={character}
-        timeSpent={timeSpent}
         isListening={voiceChat.isListening}
         userRole={user?.role || 'free'}
         onEndConversation={handleEndConversation}
@@ -84,6 +82,8 @@ export const TrainerScreen = ({ onPaywallReached }: TrainerScreenProps) => {
         isListening={voiceChat.isListening}
         isSpeaking={voiceChat.isSpeaking}
         conversationMessagesCount={conversationMessages.length}
+        timeSpent={timeSpent}
+        userRole={user?.role || 'free'}
         onStartListening={voiceChat.startListening}
         onStopListening={voiceChat.stopListening}
       />
