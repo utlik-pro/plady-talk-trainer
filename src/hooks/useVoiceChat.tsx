@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useConversation } from '@11labs/react';
 
@@ -39,7 +38,7 @@ export const useVoiceChat = () => {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, newMessage]);
-      } else if (message.source === 'agent') {
+      } else if (message.source === 'ai') {
         const newMessage: ConversationMessage = {
           text: message.message,
           sender: 'character',
