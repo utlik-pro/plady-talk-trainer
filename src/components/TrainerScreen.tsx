@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProgress } from '@/hooks/useProgress';
@@ -30,10 +29,12 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
   const [showAnalysis, setShowAnalysis] = useState(false);
   const { createSession, endSession, canCreateNewSession, sessions } = useConversationHistory();
 
+  // Таймер теперь активен только когда идет разговор
   const { timeSpent, resetTimer } = useTrainerTimer({
     userRole: profile?.role || 'free',
     onPaywallReached,
-    onTimeIncrement: incrementTrainingTime
+    onTimeIncrement: incrementTrainingTime,
+    isActive: voiceChat.isListening // Таймер активен только при прослушивании
   });
 
   const { 
@@ -99,6 +100,9 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
 
       // Связываем сессии
       startNewSession(sessionId, elevenLabsConversationId);
+      
+      // Сбрасываем таймер при начале нового разговора
+      resetTimer();
       
       toast({
         title: "Разговор начат",

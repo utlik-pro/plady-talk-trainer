@@ -51,18 +51,22 @@ export const TrainerContent = ({
           onStopListening={onStopListening}
         />
         
-        {/* Timer display under the button */}
-        <div className="mt-4 text-center">
-          <div className="text-sm text-gray-500 mb-1">Время разговора</div>
-          <div className="font-mono font-semibold text-plady-purple text-lg">
-            {formatTime(timeSpent)}
-          </div>
-          {userRole === 'free' && timeSpent > 0 && (
-            <div className="text-xs text-plady-pink mt-1">
-              Осталось: {formatTime(180 - timeSpent)}
+        {/* Timer display - показываем только во время разговора или если есть время */}
+        {(isListening || timeSpent > 0) && (
+          <div className="mt-4 text-center">
+            <div className="text-sm text-gray-500 mb-1">
+              {isListening ? 'Время разговора' : 'Последний разговор'}
             </div>
-          )}
-        </div>
+            <div className="font-mono font-semibold text-plady-purple text-lg">
+              {formatTime(timeSpent)}
+            </div>
+            {userRole === 'free' && timeSpent > 0 && timeSpent < 180 && isListening && (
+              <div className="text-xs text-plady-pink mt-1">
+                Осталось: {formatTime(180 - timeSpent)}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* End conversation button under timer */}
         {isListening && conversationMessagesCount > 0 && (
