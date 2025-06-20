@@ -1,13 +1,16 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { User } from '@/types/user';
+import { PaymentAmountDialog } from './PaymentAmountDialog';
+import { UserElevenLabsUsage } from './UserElevenLabsUsage';
 
 interface UserDetailViewProps {
   user: User;
   formatDate: (dateString: string) => string;
   onBack: () => void;
   onLogout: () => void;
-  onUpdateRole: (userId: string, newRole: 'free' | 'premium') => void;
+  onUpdateRole: (userId: string, newRole: 'free' | 'premium', amount?: number) => void;
   onToggleBan: (userId: string, currentBanStatus: boolean) => void;
 }
 
@@ -19,9 +22,23 @@ export const UserDetailView = ({
   onUpdateRole, 
   onToggleBan 
 }: UserDetailViewProps) => {
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  
   const averageMessagesPerSession = user.total_sessions > 0 
     ? Math.round(user.total_conversations / user.total_sessions) 
     : 0;
+
+  const handleUpgradeToPremium = () => {
+    setShowPaymentDialog(true);
+  };
+
+  const handlePaymentConfirm = (amount: number) => {
+    onUpdateRole(user.id, 'premium', amount);
+  };
+
+  const handleDowngradeToFree = () => {
+    onUpdateRole(user.id, 'free');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -35,7 +52,7 @@ export const UserDetailView = ({
           </Button>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
           <h1 className="text-2xl font-bold mb-6">Пользователь: {user.email}</h1>
           
           {/* Основная информация */}
@@ -140,12 +157,21 @@ export const UserDetailView = ({
           {/* Действия с пользователем */}
           <div className="space-y-4">
             <div className="flex gap-4">
-              <Button
-                onClick={() => onUpdateRole(user.id, user.role === 'premium' ? 'free' : 'premium')}
-                variant={user.role === 'premium' ? 'destructive' : 'default'}
-              >
-                {user.role === 'premium' ? 'Понизить до Free' : 'Повысить до Premium'}
-              </Button>
+              {user.role === 'premium' ? (
+                <Button
+                  onClick={handleDowngradeToFree}
+                  variant="destructive"
+                >
+                  Понизить до Free
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleUpgradeToPremium}
+                  variant="default"
+                >
+                  Повысить до Premium
+                </Button>
+              )}
               
               <Button
                 onClick={() => onToggleBan(user.id, user.is_banned)}
@@ -156,6 +182,16 @@ export const UserDetailView = ({
             </div>
           </div>
         </div>
+
+        {/* Детали использования ElevenLabs для этого пользователя */}
+        <UserElevenLabsUsage userId={user.id} formatDate={formatDate} />
+
+        <PaymentAmountDialog
+          isOpen={showPaymentDialog}
+          onClose={() => setShowPaymentDialog(false)}
+          onConfirm={handlePaymentConfirm}
+          userEmail={user.email}
+        />
       </div>
     </div>
   );

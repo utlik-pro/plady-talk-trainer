@@ -25,13 +25,17 @@ export const useAdminUsers = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: 'free' | 'premium') => {
+  const updateUserRole = async (userId: string, newRole: 'free' | 'premium', paymentAmount?: number) => {
     try {
-      await adminUsersService.updateUserRole(userId, newRole);
+      await adminUsersService.updateUserRole(userId, newRole, paymentAmount);
+      
+      const actionText = newRole === 'premium' 
+        ? `Роль пользователя изменена на ${newRole}${paymentAmount ? ` (оплата: $${paymentAmount})` : ''}`
+        : `Роль пользователя изменена на ${newRole}`;
       
       toast({
         title: "Успешно",
-        description: `Роль пользователя изменена на ${newRole}`
+        description: actionText
       });
 
       fetchUsers();

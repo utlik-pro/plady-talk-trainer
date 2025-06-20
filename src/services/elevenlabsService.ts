@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const elevenlabsService = {
   async trackUsage(userId: string, sessionId: string, charactersCount: number, conversationId?: string) {
-    // Примерная стоимость ElevenLabs: $0.00011 за символ
+    // Стоимость ElevenLabs: $0.00011 за символ (проверим эту стоимость)
     const costPerCharacter = 0.00011;
     const cost = charactersCount * costPerCharacter;
 
@@ -35,19 +35,23 @@ export const elevenlabsService = {
         .single();
 
       if (profile) {
+        const newTotalSpent = (profile.total_spent || 0) + cost;
+        const newUsageCount = (profile.elevenlabs_usage_count || 0) + 1;
+        
         await supabase
           .from('profiles')
           .update({
-            total_spent: (profile.total_spent || 0) + cost,
-            elevenlabs_usage_count: (profile.elevenlabs_usage_count || 0) + 1
+            total_spent: newTotalSpent,
+            elevenlabs_usage_count: newUsageCount
           })
           .eq('id', userId);
         
         console.log('User profile updated with new spending:', {
           previousSpent: profile.total_spent,
-          newSpent: (profile.total_spent || 0) + cost,
+          addedCost: cost,
+          newTotalSpent: newTotalSpent,
           previousUsageCount: profile.elevenlabs_usage_count,
-          newUsageCount: (profile.elevenlabs_usage_count || 0) + 1
+          newUsageCount: newUsageCount
         });
       }
     } catch (error) {

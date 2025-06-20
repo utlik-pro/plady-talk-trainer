@@ -64,7 +64,7 @@ export const adminUsersService = {
     return usersWithStats;
   },
 
-  async updateUserRole(userId: string, newRole: 'free' | 'premium') {
+  async updateUserRole(userId: string, newRole: 'free' | 'premium', paymentAmount?: number) {
     const { error } = await supabase
       .from('profiles')
       .update({ 
@@ -80,8 +80,9 @@ export const adminUsersService = {
       throw error;
     }
 
-    if (newRole === 'premium') {
-      await revenueService.addSubscriptionRevenue(userId, 9.99, 'premium', 'admin_upgrade');
+    // Если назначаем премиум и указана сумма оплаты, записываем доход
+    if (newRole === 'premium' && paymentAmount) {
+      await revenueService.addSubscriptionRevenue(userId, paymentAmount, 'premium', 'admin_upgrade');
     }
   },
 
