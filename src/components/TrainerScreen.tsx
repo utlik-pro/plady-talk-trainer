@@ -45,17 +45,20 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
     resetMessages 
   } = useConversationMessages();
 
-  // Синхронизируем сообщения с ElevenLabs
+  // Синхронизируем сообщения с ElevenLabs и сохраняем в базу данных
   useEffect(() => {
     if (voiceChat.messages.length > 0) {
+      console.log('ElevenLabs messages updated:', voiceChat.messages.length);
       updateMessages(voiceChat.messages);
     }
-  }, [voiceChat.messages]);
+  }, [voiceChat.messages, updateMessages]);
 
   const handleStartConversation = async () => {
     if (!user) return;
     
     try {
+      console.log('Starting new conversation...');
+      
       // Создаем новую сессию в базе данных
       const sessionId = await createSession(character);
       if (!sessionId) {
@@ -66,6 +69,8 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
         });
         return;
       }
+
+      console.log('Database session created:', sessionId);
 
       // Запускаем разговор с ElevenLabs
       const elevenLabsConversationId = await voiceChat.startListening();
@@ -78,17 +83,14 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
         return;
       }
 
+      console.log('ElevenLabs conversation started:', elevenLabsConversationId);
+
       // Связываем сессии
       startNewSession(sessionId, elevenLabsConversationId);
       
-      console.log('Session started:', {
-        databaseSessionId: sessionId,
-        elevenLabsConversationId: elevenLabsConversationId
-      });
-
       toast({
         title: "Разговор начат",
-        description: `ElevenLabs ID: ${elevenLabsConversationId}`,
+        description: `Сессия: ${sessionId.substring(0, 8)}...`,
       });
 
     } catch (error) {
@@ -103,6 +105,8 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
 
   const handleEndConversation = async () => {
     try {
+      console.log('Ending conversation with', conversationMessages.length, 'messages');
+      
       // Останавливаем голосовой чат
       await voiceChat.stopListening();
       
@@ -110,15 +114,15 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
         // Завершаем сессию в базе данных
         await endSession(currentSessionId, timeSpent);
         
-        console.log('Session ended:', {
-          databaseSessionId: currentSessionId,
-          elevenLabsConversationId: elevenLabsConversationId,
+        console.log('Session ended successfully:', {
+          sessionId: currentSessionId,
           messagesCount: conversationMessages.length,
           duration: timeSpent
         });
 
         setShowAnalysis(true);
       } else {
+        console.log('No messages to save or no session ID');
         toast({
           title: "Разговор слишком короткий",
           description: "Поговорите подольше, чтобы получить анализ",
@@ -176,12 +180,13 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
 
       {/* Debug info */}
       {currentSessionId && (
-        <div className="fixed bottom-20 left-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs">
-          <div>DB Session: {currentSessionId}</div>
+        <div className="fixed bottom-20 left-4 bg-black bg-opacity-75 text-white p-2 rounded text-xs max-w-xs">
+          <div>DB Session: {currentSessionId.substring(0, 8)}...</div>
           {elevenLabsConversationId && (
-            <div>ElevenLabs: {elevenLabsConversationId}</div>
+            <div>ElevenLabs: {elevenLabsConversationId.substring(0, 8)}...</div>
           )}
           <div>Messages: {conversationMessages.length}</div>
+          <div>Voice Messages: {voiceChat.messages.length}</div>
         </div>
       )}
     </div>

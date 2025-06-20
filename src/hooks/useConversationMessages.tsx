@@ -35,14 +35,28 @@ export const useConversationMessages = () => {
     setConversationMessages([]);
   };
 
-  const updateMessages = (messages: ConversationMessage[]) => {
+  const updateMessages = async (messages: ConversationMessage[]) => {
+    console.log('Updating messages:', messages.length, 'currentSessionId:', currentSessionId);
+    
+    // Обновляем локальное состояние
     setConversationMessages(messages);
     
     // Сохраняем новые сообщения в базу данных
-    if (currentSessionId) {
-      messages.forEach(async (message) => {
-        await addMessage(currentSessionId, message.sender, message.text);
-      });
+    if (currentSessionId && messages.length > 0) {
+      // Получаем только новые сообщения (те, которых еще нет в локальном состоянии)
+      const existingCount = conversationMessages.length;
+      const newMessages = messages.slice(existingCount);
+      
+      console.log('Saving new messages to database:', newMessages.length);
+      
+      for (const message of newMessages) {
+        try {
+          await addMessage(currentSessionId, message.sender, message.text);
+          console.log('Saved message:', message.text.substring(0, 50) + '...');
+        } catch (error) {
+          console.error('Error saving message:', error);
+        }
+      }
     }
   };
 
