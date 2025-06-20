@@ -9,7 +9,7 @@ interface VoiceChatConfig {
 
 export const useVoiceChat = () => {
   const [apiKey, setApiKey] = useState<string>('sk_c6dfeb28d2cc4b3c7cac8b5324875cc07b9751bd7a3d4084');
-  const [agentId, setAgentId] = useState<string>('agent_01jy3m8mhpe3092q9cmsvzcwe8');
+  const [agentId, setAgentId] = useState<string>('agent_01jy6qz3rqed38msb7dhnwsv18');
   const [isConfigured, setIsConfigured] = useState(true); // Сразу настроен
   
   const conversation = useConversation({
