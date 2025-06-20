@@ -10,16 +10,11 @@ import { toast } from '@/hooks/use-toast';
 import { TrainerHeader } from './TrainerHeader';
 import { TrainerContent } from './TrainerContent';
 import { ConversationAnalysis } from './ConversationAnalysis';
+import type { Character } from '@/types/conversation';
 
 interface TrainerScreenProps {
   onPaywallReached: () => void;
   onProfileClick: () => void;
-}
-
-interface Character {
-  name: string;
-  avatar: string;
-  personality: string;
 }
 
 const character: Character = {

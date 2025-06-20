@@ -1,33 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-
-interface ConversationSession {
-  id: string;
-  character_name: string;
-  character_avatar: string;
-  character_personality: string;
-  start_time: string;
-  end_time: string | null;
-  duration_seconds: number;
-  total_messages: number;
-  analysis?: {
-    overall_score: number;
-    strengths: string[];
-    areas_for_improvement: string[];
-    recommendations: string[];
-    detailed_feedback: string;
-  };
-}
-
-interface ConversationMessage {
-  id: string;
-  session_id: string;
-  sender: 'user' | 'character';
-  message_text: string;
-  timestamp: string;
-}
+import { conversationService } from '@/services/conversationService';
+import type { ConversationSession, Character, ConversationAnalysis } from '@/types/conversation';
 
 export const useConversationHistory = () => {
   const { user } = useAuth();
@@ -39,39 +14,8 @@ export const useConversationHistory = () => {
     
     setLoading(true);
     try {
-      const { data: sessionsData, error } = await supabase
-        .from('conversation_sessions')
-        .select(`
-          *,
-          conversation_analysis (
-            overall_score,
-            strengths,
-            areas_for_improvement,
-            recommendations,
-            detailed_feedback
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('start_time', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching sessions:', error);
-        return;
-      }
-
-      const formattedSessions = sessionsData?.map(session => ({
-        id: session.id,
-        character_name: session.character_name,
-        character_avatar: session.character_avatar,
-        character_personality: session.character_personality,
-        start_time: session.start_time,
-        end_time: session.end_time,
-        duration_seconds: session.duration_seconds,
-        total_messages: session.total_messages,
-        analysis: session.conversation_analysis?.[0] || undefined
-      })) || [];
-
-      setSessions(formattedSessions);
+      const sessionsData = await conversationService.fetchSessions(user.id);
+      setSessions(sessionsData);
     } catch (error) {
       console.error('Error in fetchSessions:', error);
     } finally {
@@ -79,31 +23,11 @@ export const useConversationHistory = () => {
     }
   };
 
-  const createSession = async (character: {
-    name: string;
-    avatar: string;
-    personality: string;
-  }) => {
+  const createSession = async (character: Character) => {
     if (!user) return null;
 
     try {
-      const { data, error } = await supabase
-        .from('conversation_sessions')
-        .insert({
-          user_id: user.id,
-          character_name: character.name,
-          character_avatar: character.avatar,
-          character_personality: character.personality
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating session:', error);
-        return null;
-      }
-
-      return data?.id;
+      return await conversationService.createSession(user.id, character);
     } catch (error) {
       console.error('Error in createSession:', error);
       return null;
@@ -112,17 +36,7 @@ export const useConversationHistory = () => {
 
   const endSession = async (sessionId: string, durationSeconds: number) => {
     try {
-      const { error } = await supabase
-        .from('conversation_sessions')
-        .update({
-          end_time: new Date().toISOString(),
-          duration_seconds: durationSeconds
-        })
-        .eq('id', sessionId);
-
-      if (error) {
-        console.error('Error ending session:', error);
-      }
+      await conversationService.endSession(sessionId, durationSeconds);
     } catch (error) {
       console.error('Error in endSession:', error);
     }
@@ -130,63 +44,15 @@ export const useConversationHistory = () => {
 
   const addMessage = async (sessionId: string, sender: 'user' | 'character', messageText: string) => {
     try {
-      const { error } = await supabase
-        .from('conversation_messages')
-        .insert({
-          session_id: sessionId,
-          sender,
-          message_text: messageText
-        });
-
-      if (error) {
-        console.error('Error adding message:', error);
-        return;
-      }
-
-      // Update message count manually since we don't have the RPC function yet
-      const { data: currentSession } = await supabase
-        .from('conversation_sessions')
-        .select('total_messages')
-        .eq('id', sessionId)
-        .single();
-
-      if (currentSession) {
-        const { error: updateError } = await supabase
-          .from('conversation_sessions')
-          .update({ total_messages: currentSession.total_messages + 1 })
-          .eq('id', sessionId);
-
-        if (updateError) {
-          console.error('Error updating message count:', updateError);
-        }
-      }
+      await conversationService.addMessage(sessionId, sender, messageText);
     } catch (error) {
       console.error('Error in addMessage:', error);
     }
   };
 
-  const saveAnalysis = async (sessionId: string, analysis: {
-    overall_score: number;
-    strengths: string[];
-    areas_for_improvement: string[];
-    recommendations: string[];
-    detailed_feedback: string;
-  }) => {
+  const saveAnalysis = async (sessionId: string, analysis: ConversationAnalysis) => {
     try {
-      const { error } = await supabase
-        .from('conversation_analysis')
-        .insert({
-          session_id: sessionId,
-          overall_score: analysis.overall_score,
-          strengths: analysis.strengths,
-          areas_for_improvement: analysis.areas_for_improvement,
-          recommendations: analysis.recommendations,
-          detailed_feedback: analysis.detailed_feedback
-        });
-
-      if (error) {
-        console.error('Error saving analysis:', error);
-      }
+      await conversationService.saveAnalysis(sessionId, analysis);
     } catch (error) {
       console.error('Error in saveAnalysis:', error);
     }
