@@ -23,13 +23,23 @@ const Index = () => {
     const seenOnboarding = localStorage.getItem('plady_onboarding_seen');
     if (seenOnboarding) {
       setHasSeenOnboarding(true);
-      if (isAuthenticated) {
-        setCurrentScreen('trainer');
+    }
+  }, []);
+
+  // Update screen based on authentication status
+  useEffect(() => {
+    if (!loading) {
+      if (hasSeenOnboarding) {
+        if (isAuthenticated) {
+          setCurrentScreen('trainer');
+        } else {
+          setCurrentScreen('auth');
+        }
       } else {
-        setCurrentScreen('auth');
+        setCurrentScreen('onboarding');
       }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, hasSeenOnboarding, loading]);
 
   // Show loading while auth is initializing
   if (loading) {
@@ -48,11 +58,10 @@ const Index = () => {
   const handleOnboardingComplete = () => {
     localStorage.setItem('plady_onboarding_seen', 'true');
     setHasSeenOnboarding(true);
-    setCurrentScreen('auth');
   };
 
   const handleAuthSuccess = () => {
-    setCurrentScreen('trainer');
+    // This will be handled by the useEffect above
   };
 
   const handlePaywallReached = () => {

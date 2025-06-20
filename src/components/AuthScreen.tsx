@@ -28,27 +28,49 @@ export const AuthScreen = ({ onSuccess }: AuthScreenProps) => {
           description: "Пароли не совпадают",
           variant: "destructive"
         });
+        setIsLoading(false);
         return;
       }
 
       if (isLogin) {
-        await login(email, password);
-        toast({
-          title: "Добро пожаловать!",
-          description: "Вы успешно вошли в систему"
-        });
+        const { error } = await login(email, password);
+        if (error) {
+          console.error('Login error:', error);
+          toast({
+            title: "Ошибка входа",
+            description: error.message || "Неверный email или пароль",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Добро пожаловать!",
+            description: "Вы успешно вошли в систему"
+          });
+          onSuccess();
+        }
       } else {
-        await register(email, password);
-        toast({
-          title: "Регистрация успешна!",
-          description: "Добро пожаловать в Plady"
-        });
+        const { error } = await register(email, password);
+        if (error) {
+          console.error('Registration error:', error);
+          toast({
+            title: "Ошибка регистрации",
+            description: error.message || "Не удалось создать аккаунт",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Регистрация успешна!",
+            description: "Проверьте email для подтверждения аккаунта"
+          });
+          // После регистрации переключаемся на вход
+          setIsLogin(true);
+        }
       }
-      onSuccess();
     } catch (error) {
+      console.error('Auth error:', error);
       toast({
         title: "Ошибка",
-        description: "Проверьте данные и попробуйте снова",
+        description: "Произошла неожиданная ошибка",
         variant: "destructive"
       });
     } finally {
@@ -123,13 +145,6 @@ export const AuthScreen = ({ onSuccess }: AuthScreenProps) => {
           >
             {isLogin ? 'Нет аккаунта? Зарегистрируйтесь' : 'Уже есть аккаунт? Войдите'}
           </button>
-        </div>
-
-        {/* Demo note */}
-        <div className="text-center mt-4 p-3 bg-plady-light rounded-xl">
-          <p className="text-sm text-gray-600">
-            💡 Демо-версия: используйте любой email и пароль
-          </p>
         </div>
       </div>
     </div>
