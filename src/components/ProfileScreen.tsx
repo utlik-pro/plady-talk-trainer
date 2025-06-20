@@ -1,0 +1,159 @@
+
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useProgress } from '@/hooks/useProgress';
+
+interface ProfileScreenProps {
+  onLogout: () => void;
+}
+
+export const ProfileScreen = ({ onLogout }: ProfileScreenProps) => {
+  const { user, logout } = useAuth();
+  const { progress } = useProgress();
+
+  const handleLogout = () => {
+    logout();
+    onLogout();
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(new Date(date));
+  };
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}ч ${minutes}м`;
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-plady-pink to-plady-purple p-6 text-white">
+        <div className="text-center">
+          <div className="text-4xl mb-2">👤</div>
+          <h1 className="text-2xl font-bold">Профиль</h1>
+          <p className="text-sm opacity-90">{user?.email}</p>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="p-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-plady-purple mb-1">
+                {progress.level}
+              </div>
+              <div className="text-sm text-gray-600">Уровень</div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-plady-pink mb-1">
+                {formatTime(progress.trainingTime)}
+              </div>
+              <div className="text-sm text-gray-600">Тренировок</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Subscription Status */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Подписка</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                user?.role === 'premium' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {user?.role === 'premium' ? 'Premium' : 'Free'}
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                {user?.role === 'premium' 
+                  ? 'Все функции доступны' 
+                  : 'Ограниченный доступ'}
+              </p>
+            </div>
+            {user?.role === 'free' && (
+              <Button 
+                size="sm"
+                className="bg-gradient-to-r from-plady-pink to-plady-purple text-white"
+              >
+                Улучшить
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Account Info */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Информация об аккаунте</h2>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Email:</span>
+              <span className="font-medium">{user?.email}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Дата регистрации:</span>
+              <span className="font-medium">
+                {user?.registrationDate && formatDate(user.registrationDate)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Статус:</span>
+              <span className={`font-medium ${
+                user?.role === 'premium' ? 'text-green-600' : 'text-gray-600'
+              }`}>
+                {user?.role === 'premium' ? 'Премиум пользователь' : 'Бесплатный аккаунт'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Achievements */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Достижения</h2>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3">
+              <div className="text-2xl">🎯</div>
+              <div>
+                <div className="font-medium">Первые шаги</div>
+                <div className="text-sm text-gray-600">Завершил первую тренировку</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 opacity-50">
+              <div className="text-2xl">💪</div>
+              <div>
+                <div className="font-medium">Настойчивость</div>
+                <div className="text-sm text-gray-600">10 тренировок подряд</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 opacity-50">
+              <div className="text-2xl">🏆</div>
+              <div>
+                <div className="font-medium">Мастер общения</div>
+                <div className="text-sm text-gray-600">Достиг 10 уровня</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <Button
+          onClick={handleLogout}
+          variant="destructive"
+          className="w-full"
+        >
+          Выйти из аккаунта
+        </Button>
+      </div>
+    </div>
+  );
+};
