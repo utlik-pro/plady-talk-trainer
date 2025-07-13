@@ -8,6 +8,7 @@ import { UsersTable } from './admin/UsersTable';
 import { UserDetailView } from './admin/UserDetailView';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { User } from '@/types/user';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AdminDashboard = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -20,7 +21,8 @@ export const AdminDashboard = () => {
     toggleUserBan
   } = useAdminDashboard();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem('admin_logged_in');
     window.location.reload();
   };

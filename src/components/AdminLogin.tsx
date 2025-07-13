@@ -3,36 +3,57 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminLoginProps {
   onLogin: () => void;
 }
 
 export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (username === 'admin' && password === 'admin') {
-      setLoading(true);
-      setTimeout(() => {
-        localStorage.setItem('admin_logged_in', 'true');
-        onLogin();
-        toast({
-          title: "Успешный вход",
-          description: "Добро пожаловать в админ панель"
-        });
-        setLoading(false);
-      }, 1000);
-    } else {
+    setLoading(true);
+
+    try {
+      // Используем email и пароль для входа через Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'admin@plady.com',
+        password: 'admin'
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Проверяем что это администратор
+      const { data: adminCheck } = await supabase
+        .from('admins')
+        .select('id')
+        .eq('id', data.user?.id)
+        .single();
+
+      if (!adminCheck) {
+        await supabase.auth.signOut();
+        throw new Error('Нет прав администратора');
+      }
+
+      localStorage.setItem('admin_logged_in', 'true');
+      onLogin();
+      toast({
+        title: "Успешный вход",
+        description: "Добро пожаловать в админ панель"
+      });
+    } catch (error: any) {
+      console.error('Admin login error:', error);
       toast({
         title: "Ошибка входа",
-        description: "Неверные данные для входа",
+        description: error.message || "Неверные данные для входа",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,24 +66,8 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <Input
-              type="text"
-              placeholder="Логин"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          
-          <div>
-            <Input
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          <div className="text-center text-gray-600 mb-4">
+            Нажмите кнопку для входа в админ панель
           </div>
 
           <Button
