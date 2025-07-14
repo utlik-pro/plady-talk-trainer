@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { User } from 'lucide-react';
+import { User, Settings } from 'lucide-react';
 
 interface TrainerHeaderProps {
   character: {
@@ -21,26 +21,34 @@ export const TrainerHeader = ({
   onEndConversation,
   onProfileClick
 }: TrainerHeaderProps) => {
+  // Status bar simulation
+  const currentTime = new Date().toLocaleTimeString('ru-RU', { 
+    hour: '2-digit', 
+    minute: '2-digit'
+  });
+
   return (
-    <div className="bg-white shadow-sm border-b border-gray-100 p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="text-2xl">{character.avatar}</div>
-          <div>
-            <h2 className="font-semibold text-gray-800">{character.name}</h2>
-            <p className="text-sm text-gray-500">Голосовой тренинг</p>
+    <div className="relative">
+      {/* Status bar */}
+      <div className="flex justify-between items-center px-6 pt-12 pb-4 text-sm text-foreground">
+        <div className="font-semibold">{currentTime}</div>
+        <div className="flex items-center space-x-1 text-xs">
+          <div className="flex space-x-1">
+            <div className="w-1 h-3 bg-foreground rounded-sm opacity-30"></div>
+            <div className="w-1 h-3 bg-foreground rounded-sm opacity-60"></div>
+            <div className="w-1 h-3 bg-foreground rounded-sm"></div>
+            <div className="w-1 h-3 bg-foreground rounded-sm"></div>
           </div>
+          <div className="ml-2">📶</div>
+          <div className="ml-1">🔋</div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onProfileClick}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            <User className="h-5 w-5" />
-          </Button>
-        </div>
+      </div>
+
+      {/* User greeting */}
+      <div className="px-6 pb-6">
+        <h1 className="text-2xl font-bold text-foreground mb-2">
+          Привет, Дмитрий!
+        </h1>
       </div>
     </div>
   );

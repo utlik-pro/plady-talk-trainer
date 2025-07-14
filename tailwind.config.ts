@@ -63,12 +63,20 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				plady: {
-					pink: '#FF6B9D',
-					purple: '#8B5CF6',
-					light: '#FDF2F8',
-					dark: '#4C1D95'
+				// Dating app theme colors
+				dating: {
+					primary: 'hsl(326 100% 74%)',
+					secondary: 'hsl(271 81% 56%)',
+					accent: 'hsl(326 100% 74% / 0.1)',
+					dark: 'hsl(240 10% 3.9%)',
+					card: 'hsl(240 8% 18%)',
+					muted: 'hsl(240 5% 64.9%)'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-accent': 'var(--gradient-accent)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

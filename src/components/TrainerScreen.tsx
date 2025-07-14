@@ -185,7 +185,7 @@ export const TrainerScreen = ({ onPaywallReached, onProfileClick }: TrainerScree
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
+    <div className="min-h-screen bg-background">
       <TrainerHeader
         character={character}
         isListening={voiceChat.isListening}
