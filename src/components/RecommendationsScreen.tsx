@@ -1,17 +1,20 @@
-
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useTrainingStats } from '@/hooks/useTrainingStats';
 import { ArrowLeft, TrendingUp, Clock, BookOpen, Ear, Lightbulb } from 'lucide-react';
-
 interface RecommendationsScreenProps {
   onBack: () => void;
 }
-
-export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) => {
-  const { user } = useAuth();
-  const { stats, loading } = useTrainingStats();
-
+export const RecommendationsScreen = ({
+  onBack
+}: RecommendationsScreenProps) => {
+  const {
+    user
+  } = useAuth();
+  const {
+    stats,
+    loading
+  } = useTrainingStats();
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
@@ -24,7 +27,6 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-
   const getPriorityText = (priority: string) => {
     switch (priority) {
       case 'high':
@@ -39,22 +41,15 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
   };
 
   // Вычисляем средний балл из данных
-  const averageScore = stats.totalSessions > 0 ? 
-    (stats.totalSessions * 7.5 / stats.totalSessions) : 0; // Примерный расчет
+  const averageScore = stats.totalSessions > 0 ? stats.totalSessions * 7.5 / stats.totalSessions : 0; // Примерный расчет
 
-  const improvement = stats.totalSessions > 1 ? 
-    ((stats.totalSessions - 1) * 0.3) : 0; // Примерное улучшение
+  const improvement = stats.totalSessions > 1 ? (stats.totalSessions - 1) * 0.3 : 0; // Примерное улучшение
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
+  return <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-plady-pink to-plady-purple p-6 text-white">
+      <div className="bg-gradient-to-r from-plady-pink to-plady-purple p-6 text-white bg-slate-950">
         <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="text-white hover:bg-white/20"
-          >
+          <Button variant="ghost" onClick={onBack} className="text-white hover:bg-white/20">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Назад
           </Button>
@@ -67,9 +62,9 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-6 bg-slate-950">
         {/* Overall Progress */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+        <div className="p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 bg-gray-800">
           <h2 className="text-lg font-semibold mb-4">Общий прогресс</h2>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
@@ -94,7 +89,7 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
         </div>
 
         {/* Achievements */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+        <div className="p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 bg-gray-800">
           <h2 className="text-lg font-semibold mb-4">Достижения</h2>
           <div className="space-y-3">
             <div className={`flex items-center space-x-3 p-3 rounded-lg border ${stats.totalSessions >= 1 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 opacity-50'}`}>
@@ -163,12 +158,9 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Персональные рекомендации</h2>
           
-          {loading ? (
-            <div className="text-center py-12">
+          {loading ? <div className="text-center py-12">
               <div className="text-gray-500">Загрузка рекомендаций...</div>
-            </div>
-          ) : stats.overallRecommendations.length === 0 ? (
-            <div className="text-center py-12">
+            </div> : stats.overallRecommendations.length === 0 ? <div className="text-center py-12">
               <Lightbulb className="w-16 h-16 mx-auto text-gray-300 mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
                 Рекомендации пока недоступны
@@ -176,11 +168,8 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
               <p className="text-gray-500">
                 Проведите несколько тренировок, чтобы получить персональные советы
               </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {stats.overallRecommendations.map((rec, index) => (
-                <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            </div> : <div className="space-y-3">
+              {stats.overallRecommendations.map((rec, index) => <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex items-start space-x-4">
                     <div className="text-plady-purple">💡</div>
                     <div className="flex-1">
@@ -193,17 +182,13 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
                       <p className="text-gray-600 text-sm">{rec}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                </div>)}
+            </div>}
 
           {/* Areas for improvement */}
-          {!loading && stats.areasToImprove.length > 0 && (
-            <div className="space-y-3 mt-6">
+          {!loading && stats.areasToImprove.length > 0 && <div className="space-y-3 mt-6">
               <h2 className="text-lg font-semibold">Области для улучшения</h2>
-              {stats.areasToImprove.map((area, index) => (
-                <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              {stats.areasToImprove.map((area, index) => <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex items-start space-x-4">
                     <div className="text-orange-500">🎯</div>
                     <div className="flex-1">
@@ -216,10 +201,8 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
                       <p className="text-gray-600 text-sm">{area}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                </div>)}
+            </div>}
         </div>
 
         {/* Tips Section */}
@@ -241,17 +224,14 @@ export const RecommendationsScreen = ({ onBack }: RecommendationsScreenProps) =>
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <p className="text-sm text-gray-600">Читайте вслух художественную литературу</p>
             </div>
-            {!loading && stats.totalSessions > 0 && (
-              <div className="flex items-center space-x-3 pt-2 border-t border-gray-100">
+            {!loading && stats.totalSessions > 0 && <div className="flex items-center space-x-3 pt-2 border-t border-gray-100">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 <p className="text-sm text-gray-600">
                   Рекомендуем провести еще {Math.max(0, 10 - stats.totalSessions)} тренировок для достижения лучших результатов
                 </p>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
