@@ -23,7 +23,7 @@ export const TrainerHeader = ({
     hour: '2-digit',
     minute: '2-digit'
   });
-  return <div className="relative">
+  return <div className="relative rounded-none bg-slate-950 my-0">
       {/* Status bar */}
       
 
