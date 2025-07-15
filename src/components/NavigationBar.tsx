@@ -14,7 +14,7 @@ export const NavigationBar = ({
       
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border backdrop-blur-md bg-opacity-95 z-50">
-        <div className="flex justify-around items-center pb-6 mx-0 px-[7px] py-0">
+        <div className="flex justify-around items-center pb-6 mx-0 px-[8px] py-0">
           <Button variant="ghost" size="sm" className={`flex flex-col items-center gap-1 px-3 py-2 h-auto min-h-[60px] rounded-xl transition-all duration-200 ${currentScreen === 'trainer' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`} onClick={() => onScreenChange('trainer')}>
             <MessageSquare className="w-5 h-5" />
             <span className="text-xs font-medium">Практика</span>
