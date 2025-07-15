@@ -23,25 +23,25 @@ interface TrainerContentProps {
 
 const characters = [
   {
-    name: 'Анна',
+    name: 'Molly',
     level: 'beginner' as const,
-    description: 'Дружелюбная студентка, любит простое общение',
+    description: 'Friendly student, loves simple conversations',
     avatar: '/lovable-uploads/4967c98a-1550-4b6b-98a3-149ef4c36303.png',
-    personality: 'Открытая и приветливая девушка, которая любит узнавать новых людей'
+    personality: 'Open and friendly girl who likes to meet new people'
   },
   {
-    name: 'Анастасия',
+    name: 'Stacy',
     level: 'intermediate' as const,
-    description: 'Творческая личность с чувством юмора',
+    description: 'Creative personality with sense of humor',
     avatar: '/lovable-uploads/4967c98a-1550-4b6b-98a3-149ef4c36303.png',
-    personality: 'Умная и остроумная, любит глубокие разговоры'
+    personality: 'Smart and witty, loves deep conversations'
   },
   {
-    name: 'Инна',
+    name: 'Emma',
     level: 'advanced' as const,
-    description: 'Уверенная в себе бизнес-леди',
+    description: 'Confident business lady',
     avatar: '/lovable-uploads/4967c98a-1550-4b6b-98a3-149ef4c36303.png',
-    personality: 'Амбициозная и харизматичная, ценит интеллект',
+    personality: 'Ambitious and charismatic, values intelligence',
     isLocked: true
   }
 ];
@@ -78,10 +78,10 @@ export const TrainerContent = ({
           
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              Разговор с {character.name}
+              Talking with {character.name}
             </h2>
             <p className="text-muted-foreground text-sm mb-6">
-              {isListening ? 'Слушаю вас...' : 'Готов к разговору'}
+              {isListening ? 'Listening to you...' : 'Ready to talk'}
             </p>
           </div>
 
@@ -93,11 +93,11 @@ export const TrainerContent = ({
                   {formatTime(timeSpent)}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {isListening ? 'Время разговора' : 'Продолжительность'}
+                  {isListening ? 'Conversation time' : 'Duration'}
                 </div>
                 {userRole === 'free' && timeSpent > 0 && timeSpent < 180 && isListening && (
                   <div className="text-xs text-primary mt-1">
-                    Осталось: {formatTime(180 - timeSpent)}
+                    Remaining: {formatTime(180 - timeSpent)}
                   </div>
                 )}
               </div>
@@ -119,7 +119,7 @@ export const TrainerContent = ({
               onClick={onEndConversation}
               className="w-full"
             >
-              Завершить разговор
+              End Conversation
             </Button>
           )}
         </div>
@@ -134,7 +134,7 @@ export const TrainerContent = ({
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">Talk to a Tutor</h1>
         <p className="text-muted-foreground text-sm">
-          Выберите девушку для практики навыков общения
+          Choose a tutor to practice your conversation skills
         </p>
       </div>
 
@@ -186,7 +186,7 @@ export const TrainerContent = ({
                     }}
                     disabled={char.isLocked && userRole === 'free'}
                   >
-                    {char.isLocked && userRole === 'free' ? 'Заблокировано' : 'Поговорить'}
+                    {char.isLocked && userRole === 'free' ? '🔒 Locked' : '🎙️ Talk'}
                   </Button>
                 </div>
               </Card>
