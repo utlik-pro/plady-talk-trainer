@@ -48,12 +48,7 @@ export const RecommendationsScreen = ({
   return <div className="min-h-screen bg-gradient-to-br from-plady-light to-white">
       {/* Header */}
       <div className="bg-gradient-to-r from-plady-pink to-plady-purple p-6 text-white bg-slate-950">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onBack} className="text-white hover:bg-white/20">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Назад
-          </Button>
-        </div>
+        
         <div className="text-center mt-4">
           <Lightbulb className="w-12 h-12 mb-2 mx-auto" />
           <h1 className="text-2xl font-bold">Рекомендации</h1>
@@ -64,7 +59,7 @@ export const RecommendationsScreen = ({
       {/* Content */}
       <div className="p-6 bg-slate-950">
         {/* Overall Progress */}
-        <div className="p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 bg-gray-800">
+        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200">
           <h2 className="text-lg font-semibold mb-4">Общий прогресс</h2>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
@@ -89,7 +84,7 @@ export const RecommendationsScreen = ({
         </div>
 
         {/* Achievements */}
-        <div className="p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 bg-gray-800">
+        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200">
           <h2 className="text-lg font-semibold mb-4">Достижения</h2>
           <div className="space-y-3">
             <div className={`flex items-center space-x-3 p-3 rounded-lg border ${stats.totalSessions >= 1 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 opacity-50'}`}>
@@ -169,7 +164,7 @@ export const RecommendationsScreen = ({
                 Проведите несколько тренировок, чтобы получить персональные советы
               </p>
             </div> : <div className="space-y-3">
-              {stats.overallRecommendations.map((rec, index) => <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              {stats.overallRecommendations.map((rec, index) => <div key={index} className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200">
                   <div className="flex items-start space-x-4">
                     <div className="text-plady-purple">💡</div>
                     <div className="flex-1">
