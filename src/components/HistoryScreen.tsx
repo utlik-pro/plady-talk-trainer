@@ -86,7 +86,7 @@ export const HistoryScreen = ({
       <div className="p-6 bg-slate-950">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200">
+          <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl bg-slate-950">
             <div className="text-center">
               <div className="text-2xl font-bold text-plady-purple mb-1">
                 {sessions.length}
@@ -95,16 +95,16 @@ export const HistoryScreen = ({
             </div>
           </div>
           
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <div className="p-4 rounded-2xl shadow-sm border border-gray-100 bg-slate-950">
             <div className="text-center">
-              <div className="text-2xl font-bold text-plady-pink mb-1">
+              <div className="text-2xl font-bold text-plady-pink mb-1 bg-slate-950">
                 {formatDuration(totalDuration)}
               </div>
               <div className="text-sm text-gray-600">Общее время</div>
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <div className="p-4 rounded-2xl shadow-sm border border-gray-100 bg-zinc-950">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600 mb-1">
                 {averageScore.toFixed(1)}
