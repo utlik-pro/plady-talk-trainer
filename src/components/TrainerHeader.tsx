@@ -29,7 +29,7 @@ export const TrainerHeader = ({
 
       {/* User greeting */}
       <div className="px-6 pb-6">
-        <h1 className="text-2xl font-bold text-foreground mb-2 my-0 py-0 mx-0 px-0">
+        <h1 className="text-2xl font-bold text-foreground mb-2 py-0 mx-0 px-0 my-[17px]">
           Привет, Дмитрий!
         </h1>
       </div>
