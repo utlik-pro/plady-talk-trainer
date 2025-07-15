@@ -59,7 +59,7 @@ export const RecommendationsScreen = ({
       {/* Content */}
       <div className="p-6 bg-slate-950">
         {/* Overall Progress */}
-        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200">
+        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl my-[18px]">
           <h2 className="text-lg font-semibold mb-4">Общий прогресс</h2>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
@@ -84,7 +84,7 @@ export const RecommendationsScreen = ({
         </div>
 
         {/* Achievements */}
-        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200">
+        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl">
           <h2 className="text-lg font-semibold mb-4">Достижения</h2>
           <div className="space-y-3">
             <div className={`flex items-center space-x-3 p-3 rounded-lg border ${stats.totalSessions >= 1 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200 opacity-50'}`}>
@@ -164,7 +164,7 @@ export const RecommendationsScreen = ({
                 Проведите несколько тренировок, чтобы получить персональные советы
               </p>
             </div> : <div className="space-y-3">
-              {stats.overallRecommendations.map((rec, index) => <div key={index} className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200">
+              {stats.overallRecommendations.map((rec, index) => <div key={index} className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl">
                   <div className="flex items-start space-x-4">
                     <div className="text-plady-purple">💡</div>
                     <div className="flex-1">
