@@ -58,7 +58,7 @@ export const ProfileScreen = ({
       </div>
 
       {/* Stats */}
-      <div className="p-6 bg-slate-950">
+      <div className="p-6 bg-slate-950 my-0 mx-0">
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl">
             <div className="text-center">
@@ -80,7 +80,7 @@ export const ProfileScreen = ({
         </div>
 
         {/* Subscription Status */}
-        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl">
+        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl my-[16px]">
           <h2 className="text-lg font-semibold mb-4">Подписка</h2>
           <div className="flex items-center justify-between">
             <div>
@@ -98,7 +98,7 @@ export const ProfileScreen = ({
         </div>
 
         {/* Account Info */}
-        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl">
+        <div className="p-4 bg-gradient-card border border-border/50 hover:border-primary/50 transition-all duration-200 rounded-2xl my-[16px]">
           <h2 className="text-lg font-semibold mb-4">Информация об аккаунте</h2>
           <div className="space-y-3">
             <div className="flex justify-between">
