@@ -23,24 +23,24 @@ interface TrainerContentProps {
 
 const characters = [
   {
-    name: 'София',
+    name: 'Анна',
     level: 'beginner' as const,
     description: 'Дружелюбная студентка, любит простое общение',
-    avatar: '👩‍🎓',
+    avatar: '/lovable-uploads/4967c98a-1550-4b6b-98a3-149ef4c36303.png',
     personality: 'Открытая и приветливая девушка, которая любит узнавать новых людей'
   },
   {
-    name: 'Анна',
+    name: 'Анастасия',
     level: 'intermediate' as const,
     description: 'Творческая личность с чувством юмора',
-    avatar: '👩‍🎨',
+    avatar: '/lovable-uploads/4967c98a-1550-4b6b-98a3-149ef4c36303.png',
     personality: 'Умная и остроумная, любит глубокие разговоры'
   },
   {
-    name: 'Виктория',
+    name: 'Инна',
     level: 'advanced' as const,
     description: 'Уверенная в себе бизнес-леди',
-    avatar: '👩‍💼',
+    avatar: '/lovable-uploads/4967c98a-1550-4b6b-98a3-149ef4c36303.png',
     personality: 'Амбициозная и харизматичная, ценит интеллект',
     isLocked: true
   }
@@ -132,60 +132,67 @@ export const TrainerContent = ({
     <div className="flex-1 p-6 pb-32">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-foreground">Talk to a Tutor</h1>
-          <div className="w-6 h-6 rounded-md bg-muted-foreground/20 flex items-center justify-center">
-            <div className="w-3 h-3 rounded-sm bg-muted-foreground/40"></div>
-          </div>
-        </div>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Talk to a Tutor</h1>
         <p className="text-muted-foreground text-sm">
-          Практикуйте навыки общения с разными персонажами
+          Выберите девушку для практики навыков общения
         </p>
       </div>
 
-      {/* Characters Grid */}
-      <div className="grid grid-cols-1 gap-6 mb-8">
-        {characters.map((char, index) => (
-          <Card key={index} className="p-6 bg-gradient-card border-border/50 relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center">
-                  <User className="w-8 h-8 text-primary-foreground" />
+      {/* Characters Horizontal Scroll */}
+      <div className="overflow-x-auto pb-4">
+        <div className="flex gap-4 min-w-max">
+          {characters.map((char, index) => (
+            <div key={index} className="relative">
+              <Card className="w-64 h-80 bg-gradient-card border-border/50 overflow-hidden relative">
+                {/* Character Image */}
+                <div className="relative h-48 bg-gradient-primary flex items-center justify-center">
+                  <img 
+                    src={char.avatar} 
+                    alt={char.name}
+                    className="w-full h-full object-cover"
+                  />
+                  {char.isLocked && userRole === 'free' && (
+                    <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-muted-foreground/20 flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-sm bg-muted-foreground/40"></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    {char.name}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {char.description}
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground rounded-full px-6"
-                onClick={() => {
-                  if (char.isLocked && userRole === 'free') return;
-                  onStartListening();
-                }}
-                disabled={char.isLocked && userRole === 'free'}
-              >
-                {char.isLocked && userRole === 'free' ? 'Заблокировано' : 'Начать'}
-              </Button>
-            </div>
-            {char.isLocked && userRole === 'free' && (
-              <div className="absolute inset-0 bg-background/50 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-8 h-8 rounded-full bg-muted-foreground/20 flex items-center justify-center mx-auto mb-2">
-                    <div className="w-4 h-4 rounded-sm bg-muted-foreground/40"></div>
+
+                {/* Character Info */}
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-1">
+                      {char.name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      {char.description}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">Premium</p>
+
+                  {/* Talk Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`w-full rounded-full py-3 font-medium transition-all duration-200 ${
+                      char.isLocked && userRole === 'free' 
+                        ? 'bg-muted/30 text-muted-foreground cursor-not-allowed' 
+                        : 'bg-muted/50 hover:bg-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/20 text-foreground'
+                    }`}
+                    onClick={() => {
+                      if (char.isLocked && userRole === 'free') return;
+                      onStartListening();
+                    }}
+                    disabled={char.isLocked && userRole === 'free'}
+                  >
+                    {char.isLocked && userRole === 'free' ? 'Заблокировано' : 'Поговорить'}
+                  </Button>
                 </div>
-              </div>
-            )}
-          </Card>
-        ))}
+              </Card>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
