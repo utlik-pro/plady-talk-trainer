@@ -130,48 +130,62 @@ export const TrainerContent = ({
   // Character selection state
   return (
     <div className="flex-1 p-6 pb-32">
-      {/* First Step Card */}
-      <Card className="p-6 mb-6 bg-gradient-primary text-primary-foreground relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold mb-2">Первый шаг</h2>
-              <p className="text-primary-foreground/90 text-sm">
-                Выберите собеседницу для практики навыков общения
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-              <ArrowRight className="w-6 h-6" />
-            </div>
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold text-foreground">Talk to a Tutor</h1>
+          <div className="w-6 h-6 rounded-md bg-muted-foreground/20 flex items-center justify-center">
+            <div className="w-3 h-3 rounded-sm bg-muted-foreground/40"></div>
           </div>
         </div>
-        <div className="absolute -right-8 -bottom-8 w-24 h-24 rounded-full bg-primary-foreground/10"></div>
-      </Card>
+        <p className="text-muted-foreground text-sm">
+          Практикуйте навыки общения с разными персонажами
+        </p>
+      </div>
 
-      {/* Characters section */}
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-1">
-            Выберите собеседницу
-          </h3>
-          <p className="text-muted-foreground text-sm mb-4">
-            Каждая девушка имеет свой характер и уровень сложности
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {characters.map((char, index) => (
-            <CharacterCard
-              key={index}
-              {...char}
-              isLocked={char.isLocked && userRole === 'free'}
-              onSelect={() => {
-                if (char.isLocked && userRole === 'free') return;
-                onStartListening();
-              }}
-            />
-          ))}
-        </div>
+      {/* Characters Grid */}
+      <div className="grid grid-cols-1 gap-6 mb-8">
+        {characters.map((char, index) => (
+          <Card key={index} className="p-6 bg-gradient-card border-border/50 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center">
+                  <User className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    {char.name}
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    {char.description}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground rounded-full px-6"
+                onClick={() => {
+                  if (char.isLocked && userRole === 'free') return;
+                  onStartListening();
+                }}
+                disabled={char.isLocked && userRole === 'free'}
+              >
+                {char.isLocked && userRole === 'free' ? 'Заблокировано' : 'Начать'}
+              </Button>
+            </div>
+            {char.isLocked && userRole === 'free' && (
+              <div className="absolute inset-0 bg-background/50 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-8 h-8 rounded-full bg-muted-foreground/20 flex items-center justify-center mx-auto mb-2">
+                    <div className="w-4 h-4 rounded-sm bg-muted-foreground/40"></div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Premium</p>
+                </div>
+              </div>
+            )}
+          </Card>
+        ))}
       </div>
     </div>
   );
